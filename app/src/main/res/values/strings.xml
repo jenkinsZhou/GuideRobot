@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GuideRobot</string>
+    <string name="save">保存</string>
+    <string name="saveTitle">保存当前位置信息</string>
+    <string name="tip">提示</string>
+    <string name="force_exit">强制退出后，将不保存机器人的当前位置，下次应用启动时机器人所处的位置将不在此处</string>
+    <string name="safe_exit">安全退出后，下次应用启动时机器人所处的位置即为当前所在位置</string>
+    <string name="exit">退出</string>
+    <string name="cancel">取消</string>
+</resources>

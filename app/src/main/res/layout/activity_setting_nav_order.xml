@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:titlebar="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.wuhenzhizao.titlebar.widget.CommonTitleBar
+        android:id="@+id/titleBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        titlebar:centerText="导航点配置"
+        titlebar:centerTextSize="25sp"
+        titlebar:centerType="textView"
+        titlebar:leftImageResource="@drawable/img_clear"
+        titlebar:leftType="imageButton"
+        titlebar:rightText="确定"
+        titlebar:rightTextSize="20sp"
+        titlebar:rightType="textView"
+        titlebar:showBottomLine="true"
+        titlebar:titleBarColor="#ffffff"
+        titlebar:titleBarHeight="100dp">
+
+    </com.wuhenzhizao.titlebar.widget.CommonTitleBar>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+</LinearLayout>

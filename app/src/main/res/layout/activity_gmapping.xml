@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <cn.tklvyou.guiderobot.widget.MapView
+            android:id="@+id/slamWareMap"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:background="#ffffff"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/saveMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:drawableTop="@drawable/img_save"
+                android:text="保存地图"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/clearMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:drawableTop="@drawable/img_clear"
+                android:text="清理地图"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/saveLoaction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:drawableTop="@drawable/img_location"
+                android:text="保存位置"
+                android:textSize="20sp" />
+
+            <!--<TextView-->
+            <!--android:id="@+id/saveOriginPoint"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginRight="20dp"-->
+            <!--android:drawableTop="@drawable/img_origin"-->
+            <!--android:drawablePadding="5dp"-->
+            <!--android:text="设置原点"-->
+            <!--android:textSize="20sp" />-->
+
+            <!--<TextView-->
+            <!--android:id="@+id/navOriginPoint"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:drawableTop="@drawable/img_origin"-->
+            <!--android:drawablePadding="5dp"-->
+            <!--android:text="回到原点"-->
+            <!--android:textSize="20sp" />-->
+
+
+            <TextView
+                android:layout_gravity="center"
+                android:id="@+id/tvShowBattery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:layout_marginRight="20dp"
+                android:textColor="#00bbff"
+                android:textSize="20sp" />
+
+
+        </LinearLayout>
+
+
+        <cn.tklvyou.guiderobot.widget.RockerView
+            android:id="@+id/rockerView"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="50dp"
+            app:areaBackground="@drawable/back_05"
+            app:rockerBackground="@drawable/button_04_normal_virgin"
+            app:rockerRadius="30dp" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/pointView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/icon_point_position" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnSafeExit"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/button_style"
+            android:text="安全退出"
+            android:textAllCaps="false"
+            android:textColor="#fff"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnForceExit"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/button_style"
+            android:text="强制退出"
+            android:textAllCaps="false"
+            android:textColor="#fff"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

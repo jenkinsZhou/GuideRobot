@@ -1,0 +1,103 @@
+package cn.tklvyou.guiderobot.base
+
+import android.app.Application
+import android.content.Context
+import cn.tklvyou.guiderobot.model.DaoMaster
+import cn.tklvyou.guiderobot.model.DaoSession
+import cn.tklvyou.guiderobot.utils.MotorController
+
+import cn.tklvyou.serialportlibrary.SerialPort
+import com.iflytek.aiui.uartkit.UARTAgent
+import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis
+import com.slamtec.slamware.AbstractSlamwarePlatform
+
+/**
+ * Created by Administrator on 2019/4/24.
+ */
+
+class MyApplication : Application() {
+
+    private lateinit var aiui: AIUITextSynthesis
+
+    private lateinit var robotPlatform: AbstractSlamwarePlatform
+
+    private var daoSession: DaoSession? = null
+    private var mContext: Context? = null
+
+    private var platform: MotorController? = null
+
+    private lateinit var serialPort: SerialPort
+
+    override fun onCreate() {
+        super.onCreate()
+        initGreenDao()
+
+        //COM1串口
+        aiui = AIUITextSynthesis(this)
+
+        //COM2串口
+        serialPort = SerialPort.getInstance("/dev/ttyS1", 9600)
+        serialPort.installAllConfigs()
+//        val timer = Timer()
+//        val task = object : TimerTask() {
+//            override fun run() {
+//                serialPort.sendDataToSerialPort("test".toByteArray())
+//            }
+//        }
+//        timer.schedule(task, 2000, 3000)
+
+
+        //电机控制类  数据监听回调
+        platform = MotorController(this, MotorController.MotorControllerListener { data: String? ->
+
+        })
+
+
+
+    }
+
+
+    /**
+     * 初始化GreenDao
+     */
+    private fun initGreenDao() {
+        val helper = DaoMaster.DevOpenHelper(this, "robot.db")
+        val db = helper.getWritableDatabase()
+        val daoMaster = DaoMaster(db)
+        daoSession = daoMaster.newSession()
+    }
+
+    fun getAppContext(): Context {
+        return mContext!!
+    }
+
+
+    public fun getDaoSession(): DaoSession {
+        return daoSession!!
+    }
+
+    public fun getLedController(): SerialPort {
+        return serialPort
+    }
+
+    public fun getUARTAgent(): UARTAgent {
+        return aiui.mAgent
+    }
+
+    public fun getAIUITextSynthesis(): AIUITextSynthesis {
+        return this.aiui
+    }
+
+    public fun getMotorController(): MotorController? {
+        return platform
+    }
+
+    public fun setRobotPlatform(robotPlatform: AbstractSlamwarePlatform) {
+        this.robotPlatform = robotPlatform
+    }
+
+    public fun getRobotPlatform(): AbstractSlamwarePlatform {
+        return this.robotPlatform
+    }
+
+}

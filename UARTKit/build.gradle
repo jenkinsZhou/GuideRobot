@@ -1,0 +1,58 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+android {
+	compileSdkVersion 27
+
+	defaultConfig {
+		minSdkVersion 19
+		targetSdkVersion 27
+
+        // 使用Cmake工具
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+                //生成多个版本的so文件
+                abiFilters  'armeabi-v7a'      //,'x86','x86_64','armeabi',
+            }
+        }
+	}
+	
+	lintOptions {
+		abortOnError false
+	}
+	
+	externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+    sourceSets.main {
+        jniLibs.srcDirs = ["libs"]
+    }
+
+}
+
+
+dependencies {
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'http://maven.iflytek.com:8081/nexus/content/repositories/YGNOME-snapshot/') {
+                authentication(userName: 'YGNOME', password: 'P@ss123')
+            }
+
+            pom.project {
+                version '1.0.0-SNAPSHOT'
+                artifactId 'UARTKit'
+                groupId 'com.iflytek.uart.helper'
+                packaging 'aar'
+                description 'UARTKit library'
+            }
+        }
+    }
+}
+

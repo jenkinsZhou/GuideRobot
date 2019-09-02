@@ -1,0 +1,17 @@
+apply plugin: 'com.android.library'
+android {
+	compileSdkVersion 27
+
+	defaultConfig {
+
+		minSdkVersion 19
+		targetSdkVersion 27
+	}
+	lintOptions {
+		abortOnError false
+	}
+}
+dependencies {
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
+	implementation project(':UARTKit')
+}

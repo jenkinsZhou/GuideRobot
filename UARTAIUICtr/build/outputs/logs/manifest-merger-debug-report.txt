@@ -1,0 +1,51 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:1-17:12
+	package
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:3:5-47
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+	android:versionName
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:5:5-30
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:2:11-69
+	android:versionCode
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:4:5-28
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+application
+ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:7:5-15:19
+	android:allowBackup
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:8:9-35
+receiver#com.iflytek.aiui.uartkit.ctrdemo.CMDReceiver
+ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:10:9-14:20
+	android:name
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:10:19-78
+intent-filter#action:name:com.iflytek.uart.helper.action.cmd
+ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:11:13-13:29
+action#com.iflytek.uart.helper.action.cmd
+ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:12:17-77
+	android:name
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml:12:25-74
+uses-sdk
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		ADDED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
+		INJECTED from C:\code\JenkinsZhou\GuideRobot\GuideRobot\UARTAIUICtr\src\main\AndroidManifest.xml
