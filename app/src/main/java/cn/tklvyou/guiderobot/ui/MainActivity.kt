@@ -15,6 +15,7 @@ import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
+import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.LocationModel
 import cn.tklvyou.guiderobot.model.NavLocation
@@ -26,12 +27,15 @@ import com.iflytek.aiui.uartkit.UARTAgent
 import com.slamtec.slamware.AbstractSlamwarePlatform
 import com.slamtec.slamware.action.ActionStatus
 import com.slamtec.slamware.action.IAction
+import com.slamtec.slamware.action.MoveDirection
+import com.slamtec.slamware.geometry.Line
+import com.slamtec.slamware.geometry.PointF
 import com.slamtec.slamware.robot.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 class MainActivity : BaseActivity() {
-
+    private var lastPositionId: Int = Integer.MAX_VALUE
     override fun getActivityLayoutID(): Int {
         return R.layout.activity_main
     }
@@ -284,10 +288,15 @@ class MainActivity : BaseActivity() {
         //机器人移动的时候精确到点
         moveOption.isPrecise = true
         moveOption.isMilestone = true
+        //先获取当前位置信息
+        val currentPose = robotPlatform!!.pose
+        //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
+        val line = Line((currentNavLocation.id as Int), currentPose.x, currentPose.y, currentNavLocation.x, currentNavLocation.y)
+        //添加虚拟路径
+        robotPlatform!!.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line)
         val location = Location(currentNavLocation.x, currentNavLocation.y, currentNavLocation.z)
         action = robotPlatform!!.moveTo(location, moveOption, 0f)
         val status = action!!.waitUntilDone()
-
         if (status == ActionStatus.FINISHED) {
             return
         } else {

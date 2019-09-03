@@ -81,40 +81,40 @@ class SplashActivity : BaseActivity() {
             System.exit(0)
         }
 
-//        btnNavigation.setOnClickListener {
-//            showDialog()
-//            btnNavigation.isEnabled = false
-//            val ipStr = editTextIp.text.toString().trim()
-//            if (ipStr.isEmpty()) {
-//                ToastUtils.showShort("请输入机器人IP地址")
-//            } else {
-//                Thread(Runnable {
-//                    try {
-//                        val robotPlatform = DeviceManager.connect(ipStr, 1445)
-//                        if (robotPlatform == null) {
-//                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
-//                        } else {
-//                            (application as MyApplication).setRobotPlatform(robotPlatform)
-//                            ToastUtils.showShort("连接成功")
-//                            val intent = Intent(this, Main2Activity::class.java)
-//                            startActivity(intent)
-//                        }
-//                        hideDialog()
-//                        finish()
-//                    } catch (e: Exception) {
-//                        e.printStackTrace()
-//                        if (e is ConnectionTimeOutException) {
-//                            ToastUtils.showShort("连接超时，请检查网络")
-//                        } else {
-//                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
-//                        }
-//                        hideDialog()
-//                    }
-//                }).start()
-//
-//            }
-//            btnNavigation.isEnabled = true
-//        }
+        btnNavigation.setOnClickListener {
+            showDialog()
+            btnNavigation.isEnabled = false
+            val ipStr = editTextIp.text.toString().trim()
+            if (ipStr.isEmpty()) {
+                ToastUtils.showShort("请输入机器人IP地址")
+            } else {
+                Thread(Runnable {
+                    try {
+                        val robotPlatform = DeviceManager.connect(ipStr, 1445)
+                        if (robotPlatform == null) {
+                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                        } else {
+                            (application as MyApplication).setRobotPlatform(robotPlatform)
+                            ToastUtils.showShort("连接成功")
+                            val intent = Intent(this, MainActivity::class.java)
+                            startActivity(intent)
+                        }
+                        hideDialog()
+                        finish()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        if (e is ConnectionTimeOutException) {
+                            ToastUtils.showShort("连接超时，请检查网络")
+                        } else {
+                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                        }
+                        hideDialog()
+                    }
+                }).start()
+
+            }
+            btnNavigation.isEnabled = true
+        }
 
 
     }

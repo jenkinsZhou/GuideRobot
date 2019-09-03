@@ -1,5 +1,9 @@
 package cn.tklvyou.guiderobot.base;
 
+import com.blankj.utilcode.util.LogUtils;
+import com.slamtec.slamware.robot.Pose;
+import com.slamtec.slamware.robot.Rotation;
+
 /***
  * 基础数据结构
  */
@@ -32,4 +36,7 @@ public class BaseResult<T> {
     public void setData(T data) {
         this.data = data;
     }
+
+
+
 }

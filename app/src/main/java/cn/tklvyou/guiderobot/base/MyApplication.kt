@@ -2,9 +2,16 @@ package cn.tklvyou.guiderobot.base
 
 import android.app.Application
 import android.content.Context
+import android.os.Environment
+import cn.tklvyou.guiderobot.log.LogConfig.PATH_LOG_SAVE
+import cn.tklvyou.guiderobot.log.LogConfig.TAG_LOG_PRE_SUFFIX
+import cn.tklvyou.guiderobot.log.TourCooLogUtil
+import cn.tklvyou.guiderobot.log.widget.LogFileEngineFactory
+import cn.tklvyou.guiderobot.log.widget.config.LogLevel
 import cn.tklvyou.guiderobot.model.DaoMaster
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.utils.MotorController
+import cn.tklvyou.serialportlibrary.BuildConfig
 
 import cn.tklvyou.serialportlibrary.SerialPort
 import com.iflytek.aiui.uartkit.UARTAgent
@@ -30,6 +37,7 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        initLog()
         initGreenDao()
 
         //COM1串口
@@ -51,7 +59,6 @@ class MyApplication : Application() {
         platform = MotorController(this, MotorController.MotorControllerListener { data: String? ->
 
         })
-
 
 
     }
@@ -98,6 +105,23 @@ class MyApplication : Application() {
 
     public fun getRobotPlatform(): AbstractSlamwarePlatform {
         return this.robotPlatform
+    }
+
+
+    /**
+     * 初始化日志配置
+     */
+    private fun initLog() {
+        TourCooLogUtil.getLogConfig()
+                .configAllowLog(BuildConfig.DEBUG)
+                .configTagPrefix(TAG_LOG_PRE_SUFFIX)
+                .configShowBorders(false).configLevel(LogLevel.TYPE_VERBOSE)
+        // 支持输入日志到文件
+        var filePath = "" + Environment.getExternalStorageDirectory() +PATH_LOG_SAVE
+        TourCooLogUtil.getLogFileConfig().configLogFileEnable(BuildConfig.DEBUG)
+                .configLogFilePath(filePath)
+                .configLogFileLevel(LogLevel.TYPE_VERBOSE)
+                .configLogFileEngine(LogFileEngineFactory(this))
     }
 
 }

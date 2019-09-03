@@ -1,6 +1,7 @@
 package cn.tklvyou.guiderobot.model;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.slamtec.slamware.geometry.PointF;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;

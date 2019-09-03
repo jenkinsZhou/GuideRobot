@@ -132,7 +132,7 @@ public class HexUtils {
     }
 
 
-    public static void main(String arg[]){
+   /* public static void main(String arg[]){
 
        byte[] bytes =  new byte[]{0x55, 0x55, 0x01, 0x07, 0x01, (byte) 0xF4, 0x01, (byte) 0xDC, 0x05, (byte) 0xec};
 
@@ -141,7 +141,7 @@ public class HexUtils {
         String parse = "EC";
         byte a = parseHexStr2Byte(parse);
         System.out.println(parseHexStr2Byte(parse)+"");
-    }
+    }*/
 
 
 }

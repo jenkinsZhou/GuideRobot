@@ -85,5 +85,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     implementation project(path: ':usbSerialForAndroid')
     implementation project(path: ':UARTKit')
+    //日志写入引擎
+    api 'com.apkfuns.log2file:log2file:1.1.0'
 
 }

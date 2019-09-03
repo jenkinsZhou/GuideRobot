@@ -13,6 +13,8 @@ import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
+import cn.tklvyou.guiderobot.constant.MathUtil
+import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.NavLocation
 import cn.tklvyou.guiderobot.widget.RockerView
@@ -20,6 +22,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.blankj.utilcode.util.FileUtils
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SPUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.google.gson.Gson
@@ -28,6 +31,7 @@ import com.slamtec.slamware.action.IMoveAction
 import com.slamtec.slamware.exceptions.*
 import kotlinx.android.synthetic.main.activity_gmapping.*
 import com.slamtec.slamware.action.MoveDirection
+import com.slamtec.slamware.discovery.DeviceManager
 import com.slamtec.slamware.geometry.PointF
 import com.slamtec.slamware.robot.*
 import com.slamtec.slamware.robot.Map
@@ -38,7 +42,7 @@ import java.util.concurrent.ExecutorService
 
 
 class GmappingActivity : BaseActivity(), View.OnClickListener {
-
+    private val TAG = "GmappingActivity"
     override fun getActivityLayoutID(): Int {
         return R.layout.activity_gmapping
     }
@@ -92,7 +96,8 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         saveLoaction.setOnClickListener(this)
 //        saveOriginPoint.setOnClickListener(this)
 //        navOriginPoint.setOnClickListener(this)
-
+        tvTest.setOnClickListener(this)
+        tvTest0.setOnClickListener(this)
         btnSafeExit.setOnClickListener(this)
         btnForceExit.setOnClickListener(this)
 
@@ -183,6 +188,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                 override fun run() {
                     if (isLoop) {
                         try {
+
                             getDirection(currentDirection)
                         } catch (e: Exception) {
 
@@ -259,8 +265,11 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                                 navLocation.x = robotPlatform!!.pose.x
                                 navLocation.y = robotPlatform!!.pose.y
                                 navLocation.z = robotPlatform!!.pose.z
+                                LogUtils.i(TAG,"X值="+robotPlatform!!.pose.x)
+                                LogUtils.d(TAG,"Y值="+robotPlatform!!.pose.y)
+                                LogUtils.e(TAG,"Z值="+robotPlatform!!.pose.z)
                                 navLocation.rotation = robotPlatform!!.pose.yaw
-
+                                TourCooLogUtil.i("线路", navLocation)
                                 if (daoSession!!.navLocationDao.load(navLocation.id) != null) {
                                     ToastUtils.showShort("当前位置编号已被使用")
                                 } else {
@@ -333,6 +342,32 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         }
                     }
 
+                    R.id.tvTest -> {
+                      var  currentPose = robotPlatform!!.pose
+                        var rotation = currentPose?.rotation
+                        var yaw = rotation?.yaw
+                         var newRotation = Rotation()
+                        newRotation.yaw  = 20.0f
+                        currentPose.rotation = newRotation
+                        robotPlatform!!.pose = currentPose
+                        val rotation1 = Rotation(MathUtil.PI*2)
+                        val action = robotPlatform!!.rotate(rotation1)
+                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")
+                        LogUtils.i(TAG, "当前的yaw:$yaw")
+                    }
+                    R.id.tvTest0 ->{
+                        var  currentPose = robotPlatform!!.pose
+                        var rotation = currentPose?.rotation
+                        var yaw = rotation?.yaw
+                        LogUtils.d(TAG, "当前的yaw:$yaw")
+                        var newRotation = Rotation()
+                        newRotation.yaw  = 1f
+                        currentPose.rotation = newRotation
+                        robotPlatform!!.pose = currentPose
+                        val rotation1 = Rotation(-MathUtil.PI*2)
+                        val action = robotPlatform!!.rotate(rotation1)
+                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")
+                    }
 //                    R.id.saveOriginPoint -> {
 //                        val compisteMap = robotPlatform!!.compositeMap
 //                        val maps = compisteMap.maps

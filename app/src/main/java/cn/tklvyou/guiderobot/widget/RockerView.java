@@ -18,13 +18,20 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.slamtec.slamware.AbstractSlamwarePlatform;
+import com.slamtec.slamware.action.IMoveAction;
+import com.slamtec.slamware.discovery.DeviceManager;
+import com.slamtec.slamware.robot.Rotation;
+
 import cn.tklvyou.guiderobot.R;
+import cn.tklvyou.guiderobot.base.MyApplication;
 
 /**
  * 摇杆控件
  */
 public class RockerView extends View {
     private static final String TAG = "RockerView";
+
 
     private static final int DEFAULT_SIZE = 400;
     private static final int DEFAULT_ROCKER_RADIUS = DEFAULT_SIZE / 8;
@@ -690,4 +697,8 @@ public class RockerView extends View {
         // 结束
         void onFinish();
     }
+
+
+
+
 }
