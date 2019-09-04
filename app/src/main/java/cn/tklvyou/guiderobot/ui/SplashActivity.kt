@@ -6,12 +6,13 @@ import android.os.Handler
 import android.os.Message
 import android.view.KeyEvent
 import android.widget.EditText
-import cn.tklvyou.guiderobot.R
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
+import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.model.NavLocation
+import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
@@ -23,6 +24,7 @@ import kotlinx.android.synthetic.main.activity_splash.*
 import com.slamtec.slamware.robot.NetworkMode
 
 
+@SuppressLint("Registered")
 class SplashActivity : BaseActivity() {
     override fun playComplete() {
     }
@@ -48,11 +50,12 @@ class SplashActivity : BaseActivity() {
                         } else {
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             //配置底盘路由模式——中继
-//                            val options = HashMap<String, String>()
-//                            options.put("ssid", "Robot")
-//                            options.put("password", "12345678")
-//                            val isSuccess = robotPlatform.configureNetwork(NetworkMode.NetworkModeStation, options)
-
+                            TourCooLogUtil.i("已执行")
+                            val options = HashMap<String, String>()
+                            options.put("ssid", "Robot")
+                            options.put("password", "12345678")
+                            val isSuccess = robotPlatform.configureNetwork(NetworkMode.NetworkModeStation, options)
+                                TourCooLogUtil.i("是否连接成功:$isSuccess")
                             ToastUtils.showShort("连接成功")
                             val intent = Intent(this, GmappingActivity::class.java)
                             startActivity(intent)
@@ -82,6 +85,7 @@ class SplashActivity : BaseActivity() {
         }
 
         btnNavigation.setOnClickListener {
+            dialog = null
             showDialog()
             btnNavigation.isEnabled = false
             val ipStr = editTextIp.text.toString().trim()

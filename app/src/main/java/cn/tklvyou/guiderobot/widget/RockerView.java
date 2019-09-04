@@ -23,8 +23,8 @@ import com.slamtec.slamware.action.IMoveAction;
 import com.slamtec.slamware.discovery.DeviceManager;
 import com.slamtec.slamware.robot.Rotation;
 
-import cn.tklvyou.guiderobot.R;
 import cn.tklvyou.guiderobot.base.MyApplication;
+import cn.tklvyou.guiderobot_new.R;
 
 /**
  * 摇杆控件

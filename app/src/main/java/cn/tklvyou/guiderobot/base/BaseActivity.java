@@ -9,11 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.iflytek.aiui.uartkit.UARTAgent;
 import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis;
 
-import cn.tklvyou.guiderobot.R;
 import cn.tklvyou.guiderobot.widget.LoadingProgressDialog;
+import cn.tklvyou.guiderobot_new.R;
 
 /**
  * Created by Administrator on 2019/4/25.
@@ -23,7 +24,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
     private MyApplication application;
     private AIUITextSynthesis aiuiTextSynthesis;
-    private LoadingProgressDialog dialog;
+    protected LoadingProgressDialog dialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,6 +65,11 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
     @Override
     public void onInitSuccess() {
+    }
+
+    @Override
+    public void onInitFailed() {
+        ToastUtils.showShort("语音组件初始化失败");
     }
 
     public void speckTextSynthesis(String text, boolean isStop) {

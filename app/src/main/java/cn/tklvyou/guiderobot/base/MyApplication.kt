@@ -3,6 +3,7 @@ package cn.tklvyou.guiderobot.base
 import android.app.Application
 import android.content.Context
 import android.os.Environment
+import cn.tklvyou.guiderobot.crash.CrashManager
 import cn.tklvyou.guiderobot.log.LogConfig.PATH_LOG_SAVE
 import cn.tklvyou.guiderobot.log.LogConfig.TAG_LOG_PRE_SUFFIX
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
@@ -37,9 +38,9 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        mContext = this
         initLog()
         initGreenDao()
-
         //COM1串口
         aiui = AIUITextSynthesis(this)
 
@@ -60,7 +61,8 @@ class MyApplication : Application() {
 
         })
 
-
+        //异常处理初始化
+        CrashManager.init(this)
     }
 
 
@@ -68,13 +70,13 @@ class MyApplication : Application() {
      * 初始化GreenDao
      */
     private fun initGreenDao() {
-        val helper = DaoMaster.DevOpenHelper(this, "robot.db")
+        val helper = DaoMaster.DevOpenHelper(this, "guide_robot.db")
         val db = helper.getWritableDatabase()
         val daoMaster = DaoMaster(db)
         daoSession = daoMaster.newSession()
     }
 
-    fun getAppContext(): Context {
+     fun getAppContext(): Context {
         return mContext!!
     }
 

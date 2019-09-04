@@ -1,4 +1,4 @@
-package cn.tklvyou.guiderobot.constant;
+package cn.tklvyou.guiderobot.utils;
 
 /**
  * @author :JenkinsZhou

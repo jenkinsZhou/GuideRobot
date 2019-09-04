@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.blankj.utilcode.util.LogUtils;
 
-import cn.tklvyou.guiderobot.R;
+import cn.tklvyou.guiderobot_new.R;
 
 
 /**

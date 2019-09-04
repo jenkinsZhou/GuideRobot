@@ -8,16 +8,16 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
-import cn.tklvyou.guiderobot.R
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
-import cn.tklvyou.guiderobot.constant.MathUtil
+import cn.tklvyou.guiderobot.utils.MathUtil
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.NavLocation
 import cn.tklvyou.guiderobot.widget.RockerView
+import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
@@ -31,14 +31,9 @@ import com.slamtec.slamware.action.IMoveAction
 import com.slamtec.slamware.exceptions.*
 import kotlinx.android.synthetic.main.activity_gmapping.*
 import com.slamtec.slamware.action.MoveDirection
-import com.slamtec.slamware.discovery.DeviceManager
-import com.slamtec.slamware.geometry.PointF
 import com.slamtec.slamware.robot.*
-import com.slamtec.slamware.robot.Map
 import java.util.*
 import com.slamtec.slamware.sdp.CompositeMapHelper
-import io.reactivex.functions.Consumer
-import java.util.concurrent.ExecutorService
 
 
 class GmappingActivity : BaseActivity(), View.OnClickListener {

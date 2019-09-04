@@ -9,16 +9,21 @@ import android.view.KeyEvent
 import android.view.View
 import com.blankj.utilcode.util.LogUtils
 import com.slamtec.slamware.sdp.CompositeMapHelper
-import cn.tklvyou.guiderobot.R
 import cn.tklvyou.guiderobot.RobotAction
+import cn.tklvyou.guiderobot.RobotAction.LEFT_HANDED_ROTATION
+import cn.tklvyou.guiderobot.RobotAction.RIGHT_HANDED_ROTATION
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
+import cn.tklvyou.guiderobot.constant.HomeConstant.*
+import cn.tklvyou.guiderobot.constant.RequestConstant.*
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.LocationModel
 import cn.tklvyou.guiderobot.model.NavLocation
+import cn.tklvyou.guiderobot.utils.MathUtil
+import cn.tklvyou.guiderobot_new.R
 import com.blankj.utilcode.util.SPUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
@@ -34,8 +39,10 @@ import com.slamtec.slamware.robot.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
+@Suppress("UNCHECKED_CAST")
 class MainActivity : BaseActivity() {
-    private var lastPositionId: Int = Integer.MAX_VALUE
+
+
     override fun getActivityLayoutID(): Int {
         return R.layout.activity_main
     }
@@ -62,33 +69,33 @@ class MainActivity : BaseActivity() {
             if (msg != null) {
 
                 when (msg.what) {
-                    0 -> {
+                    MSG_START -> {
                         btnStartNav.setOnClickListener {
                             btnStartNav.visibility = View.INVISIBLE
-
-                            RetrofitHelper.getInstance().getServer()
+                            RetrofitHelper.getInstance().server
                                     .getLocationMessage(0)
                                     .compose(RxSchedulers.applySchedulers())
                                     .subscribe({ result ->
                                         hideDialog()
                                         when (result.status) {
-                                            0 -> {
+                                            REQUEST_ERROR -> {
                                                 ToastUtils.showShort(result.errmsg)
                                                 btnStartNav.visibility = View.VISIBLE
                                             }
-                                            1 -> {
+                                            REQUEST_SUCCESS -> {
                                                 index = 0
                                                 val model = result.data
                                                 nextId = model.next
+                                                // 根据服务器返回的LocationModel中的当前id 去数据库寻找与之对应的NavLocation实体
                                                 currentNavLocation = daoSession!!.navLocationDao.load(model.local) as NavLocation
                                                 try {
                                                     navToLocation(currentNavLocation!!)
-
                                                     Glide.with(this@MainActivity).load(model.thumb).into(ivShow)
+                                                    //获取服务器返回在该位置需要做的action集合
                                                     list = model.content
 
                                                     val ctrMsg = Message()
-                                                    ctrMsg.what = 999
+                                                    ctrMsg.what = MSG_CHECK_CONTENT
                                                     ctrMsg.obj = list
                                                     sendMessage(ctrMsg)
 
@@ -107,24 +114,23 @@ class MainActivity : BaseActivity() {
                         }
                     }
 
-                    999 -> {
+                    MSG_CHECK_CONTENT -> {
                         checkContent(msg.obj as MutableList<LocationModel.ContentBean>)
                     }
 
-                    1000 -> {
+                    MSG_DO_ACTION -> {
                         val action_value = msg.data.getString("action")
                         LogUtils.e(action_value)
-
                         val ctrList = msg.obj as MutableList<LocationModel.ContentBean>
-
                         if (action_value == RobotAction.AWAIT_TIME) {
+                            //当前动作为等待1.5秒
                             postDelayed({
-
+                                //1.5秒后开始执行下一个动作
                                 /*当前动作指令不是列表中的最后一条记录*/
                                 if (ctrList.size - 1 > index) {
                                     index++
                                     val ctrMsg = Message()
-                                    ctrMsg.what = 999
+                                    ctrMsg.what = MSG_CHECK_CONTENT
                                     ctrMsg.obj = ctrList
                                     sendMessage(ctrMsg)
                                 } else {  /*当前动作指令已经是最后一条记录了*/
@@ -140,10 +146,10 @@ class MainActivity : BaseActivity() {
                                                     .subscribe({ result ->
                                                         hideDialog()
                                                         when (result.status) {
-                                                            0 -> {
+                                                            REQUEST_ERROR -> {
                                                                 ToastUtils.showShort(result.errmsg)
                                                             }
-                                                            1 -> {
+                                                            REQUEST_SUCCESS -> {
                                                                 index = 0
                                                                 val model = result.data
                                                                 nextId = model.next
@@ -156,7 +162,7 @@ class MainActivity : BaseActivity() {
 
 
                                                                     val ctrMsg = Message()
-                                                                    ctrMsg.what = 999
+                                                                    ctrMsg.what = MSG_CHECK_CONTENT
                                                                     ctrMsg.obj = list
                                                                     sendMessage(ctrMsg)
 
@@ -183,6 +189,7 @@ class MainActivity : BaseActivity() {
 
                             }, 1500)
                         } else {
+                            //如果是动作 则根据动作类型执行相应动作
                             val actionModel = RobotAction.getControllerCommand(action_value)
                             when (actionModel.type) {
                                 RobotAction.LEFT_RIGHT_HANDS_ACTION -> {
@@ -192,6 +199,10 @@ class MainActivity : BaseActivity() {
                                 RobotAction.HEAD_LED_ACTION -> {
                                     (application as MyApplication).getLedController().sendDataToSerialPort(actionModel.params as ByteArray)
                                 }
+                                RobotAction.HANDED_ROTATION_ACTION -> {
+                                    //执行身体转动
+                                    doBodyRotating(actionModel.params as String)
+                                }
 
                             }
 
@@ -200,7 +211,7 @@ class MainActivity : BaseActivity() {
                             if (ctrList.size - 1 > index) {
                                 index++
                                 val ctrMsg = Message()
-                                ctrMsg.what = 999
+                                ctrMsg.what = MSG_CHECK_CONTENT
                                 ctrMsg.obj = ctrList
                                 sendMessage(ctrMsg)
                             } else {  /*当前动作指令已经是最后一条记录了*/
@@ -217,10 +228,10 @@ class MainActivity : BaseActivity() {
                                                 .subscribe({ result ->
                                                     hideDialog()
                                                     when (result.status) {
-                                                        0 -> {
+                                                        REQUEST_ERROR -> {
                                                             ToastUtils.showShort(result.errmsg)
                                                         }
-                                                        1 -> {
+                                                        REQUEST_SUCCESS -> {
                                                             index = 0
                                                             val model = result.data
                                                             nextId = model.next
@@ -233,7 +244,7 @@ class MainActivity : BaseActivity() {
 
 
                                                                 val ctrMsg = Message()
-                                                                ctrMsg.what = 999
+                                                                ctrMsg.what = MSG_CHECK_CONTENT
                                                                 ctrMsg.obj = list
                                                                 sendMessage(ctrMsg)
 
@@ -323,12 +334,14 @@ class MainActivity : BaseActivity() {
             val poseJson = SPUtils.getInstance().getString("pose")
             if (poseJson.isNotEmpty() && compositeMap != null) {
                 robotPlatform!!.setCompositeMap(compositeMap, Gson().fromJson<Pose>(poseJson, Pose::class.java))
-                handler.sendEmptyMessage(0)
+                //加载地图和上次pose信息后
+                handler.sendEmptyMessage(MSG_START)
             }
         }).start()
 
     }
 
+    @SuppressLint("CheckResult")
     override fun playComplete() {
         super.playComplete()
 
@@ -350,10 +363,10 @@ class MainActivity : BaseActivity() {
                                 .subscribe({ result ->
                                     hideDialog()
                                     when (result.status) {
-                                        0 -> {
+                                        REQUEST_ERROR -> {
                                             ToastUtils.showShort(result.errmsg)
                                         }
-                                        1 -> {
+                                        REQUEST_SUCCESS -> {
                                             index = 0
                                             val model = result.data
                                             nextId = model.next
@@ -365,7 +378,7 @@ class MainActivity : BaseActivity() {
                                                 this.list = model.content
 
                                                 val ctrMsg = Message()
-                                                ctrMsg.what = 999
+                                                ctrMsg.what = MSG_CHECK_CONTENT
                                                 ctrMsg.obj = list
                                                 handler.sendMessage(ctrMsg)
 
@@ -406,7 +419,7 @@ class MainActivity : BaseActivity() {
                 }
             } else {
                 val ctrMsg = Message()
-                ctrMsg.what = 999
+                ctrMsg.what = MSG_CHECK_CONTENT
                 ctrMsg.obj = list
                 handler.sendMessage(ctrMsg)
             }
@@ -417,13 +430,15 @@ class MainActivity : BaseActivity() {
     private fun checkContent(list: MutableList<LocationModel.ContentBean>) {
 
         if (list[index].type == "text") {
+            //如果当前的type是文本 则直接说话
             speckTextSynthesis(list[index].value, index == list.size - 1)
             return
         } else {
+            //如果当前的type是动作 则延迟执行动作
             val bundle = Bundle()
             bundle.putString("action", list[index].value)
             val ctrMsg = Message()
-            ctrMsg.what = 1000
+            ctrMsg.what = MSG_DO_ACTION
             ctrMsg.obj = list
             ctrMsg.data = bundle
             handler.sendMessageDelayed(ctrMsg, 200)
@@ -469,5 +484,26 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    /**
+     * 根据转动action执行对应动作
+     */
+    private fun doBodyRotating(action: String) {
+        when (action) {
+            LEFT_HANDED_ROTATION -> {
+                //身体左转
+                val rotation1 = Rotation(-MathUtil.PI * 2)
+                robotPlatform!!.rotate(rotation1)
+            }
+            RIGHT_HANDED_ROTATION -> {
+                //身体右转
+                val rotation1 = Rotation(-MathUtil.PI * 2)
+                robotPlatform!!.rotate(rotation1)
+            }
+            else ->{
+                ToastUtils.showShort("未匹配到指令")
+            }
+        }
+
+    }
 
 }

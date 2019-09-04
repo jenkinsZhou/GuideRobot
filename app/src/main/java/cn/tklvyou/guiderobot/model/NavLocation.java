@@ -13,6 +13,9 @@ import java.util.List;
 @Entity
 public class NavLocation {
 
+    /**
+     * 位置id
+     */
     @Id(autoincrement = false)
     private Long id;
     private String name;

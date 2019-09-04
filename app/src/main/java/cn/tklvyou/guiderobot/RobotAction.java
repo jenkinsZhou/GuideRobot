@@ -73,7 +73,8 @@ public class RobotAction {
         } else if (action.equals(HEAD_LED_LIGHT) || action.equals(HEAD_LED_BREATHE) || action.equals(HEAD_LED_CLOSE)) {
             return new ControllerModel(HEAD_LED_ACTION, getHeadLedCommand(action));
         } else if (action.equals(LEFT_HANDED_ROTATION) || action.equals(RIGHT_HANDED_ROTATION)) {
-            return new ControllerModel(HANDED_ROTATION_ACTION, null);
+            //身体左转或右转
+            return new ControllerModel(HANDED_ROTATION_ACTION, action);
         } else {
             return new ControllerModel(-1, null);
         }

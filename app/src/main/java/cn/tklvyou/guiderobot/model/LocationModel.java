@@ -11,8 +11,13 @@ public class LocationModel {
      * next : 9
      * thumb : http://robot.tklvyou.cn/uploads/admin/article_thumb/20190508/0e304f2344e96133248307bfd347ae63.jpg
      */
-
+    /**
+     * 当前位置信息id
+     */
     private long local;
+    /**
+     * 下一个位置信息的id
+     */
     private long next;
     private String thumb;
     private List<ContentBean> content;

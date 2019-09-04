@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GuideRobot</string>
+    <string name="app_name">向导机器人</string>
     <string name="save">保存</string>
     <string name="saveTitle">保存当前位置信息</string>
     <string name="tip">提示</string>
@@ -7,4 +7,28 @@
     <string name="safe_exit">安全退出后，下次应用启动时机器人所处的位置即为当前所在位置</string>
     <string name="exit">退出</string>
     <string name="cancel">取消</string>
+
+
+
+    <!--异常相关-->
+    <string name="custom_activityoncrash_error_activity_error_occurred_explanation">抱歉，出现了不可预期的错误，您可重新启动应用，或者将错误信息反馈给我们，感谢您的理解与支持！</string>
+    <string name="custom_activityoncrash_error_activity_unknown_exception">未知异常</string>
+    <string name="custom_activityoncrash_error_activity_restart_app">重新启动</string>
+    <string name="custom_activityoncrash_error_activity_close_app">关闭应用</string>
+    <string name="custom_activityoncrash_error_activity_error_details">查看错误信息</string>
+    <string name="custom_activityoncrash_error_activity_error_details_title">错误信息</string>
+    <string name="custom_activityoncrash_error_activity_error_details_close">关闭</string>
+    <string name="custom_activityoncrash_error_activity_error_details_copy">复制</string>
+    <string name="custom_activityoncrash_error_activity_error_details_copied">复制</string>
+    <string name="custom_activityoncrash_error_activity_error_details_clipboard_label">错误信息</string>
+    <string name="custom_activity_on_crash_error_activity_error_occurred_explanation">抱歉，出现了不可预期的错误，您可重新启动应用，或者将错误信息反馈给我们，感谢您的理解与支持！</string>
+    <string name="custom_activity_on_crash_error_activity_unknown_exception">未知异常</string>
+    <string name="custom_activity_on_crash_error_activity_restart_app">重新启动</string>
+    <string name="custom_activity_on_crash_error_activity_close_app">关闭应用</string>
+    <string name="custom_activity_on_crash_error_activity_error_details">查看错误信息</string>
+    <string name="custom_activity_on_crash_error_activity_error_details_title">错误信息</string>
+    <string name="custom_activity_on_crash_error_activity_error_details_close">关闭</string>
+    <string name="custom_activity_on_crash_error_activity_error_details_copy">复制</string>
+    <string name="custom_activity_on_crash_error_activity_error_details_copied">复制</string>
+    <string name="custom_activity_on_crash_error_activity_error_details_clipboard_label">错误信息</string>
 </resources>
