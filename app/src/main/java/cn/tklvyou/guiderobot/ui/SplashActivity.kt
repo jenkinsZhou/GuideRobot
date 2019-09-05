@@ -112,6 +112,8 @@ class SplashActivity : BaseActivity() {
                         e.printStackTrace()
                         if (e is ConnectionTimeOutException) {
                             ToastUtils.showShort("连接超时，请检查网络")
+                            val intent = Intent(this, GuideActivity::class.java)
+                            startActivity(intent)
                         } else {
                             ToastUtils.showShort("连接失败，请输入正确的IP地址")
                         }

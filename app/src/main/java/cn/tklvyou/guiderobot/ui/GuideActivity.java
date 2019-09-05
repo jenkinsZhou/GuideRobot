@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -30,6 +33,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.tklvyou.guiderobot.adapter.LogAdapter;
 import cn.tklvyou.guiderobot.api.RetrofitHelper;
 import cn.tklvyou.guiderobot.api.RxSchedulers;
 import cn.tklvyou.guiderobot.base.BaseActivity;
@@ -37,10 +41,12 @@ import cn.tklvyou.guiderobot.base.BaseResult;
 import cn.tklvyou.guiderobot.base.MyApplication;
 import cn.tklvyou.guiderobot.constant.HomeConstant;
 import cn.tklvyou.guiderobot.log.TourCooLogUtil;
+import cn.tklvyou.guiderobot.log.widget.config.LogLevel;
 import cn.tklvyou.guiderobot.manager.GlideManager;
 import cn.tklvyou.guiderobot.manager.Robot;
 import cn.tklvyou.guiderobot.model.DaoSession;
 import cn.tklvyou.guiderobot.model.LocationModel;
+import cn.tklvyou.guiderobot.model.LogInfo;
 import cn.tklvyou.guiderobot.model.NavLocation;
 import cn.tklvyou.guiderobot.threadpool.ThreadPoolManager;
 import cn.tklvyou.guiderobot_new.R;
@@ -48,6 +54,9 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.internal.observers.BasicFuseableObserver;
 
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_CLOSE_LOADING;
+import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_D;
+import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_E;
+import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_I;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_SHOW_LOADING;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_TOAST;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR;
@@ -70,6 +79,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private DaoSession daoSession;
     private AbstractSlamwarePlatform slamWarePlatform;
     private NavLocation mCurrentPositionInfo;
+    private List<LogInfo> logList = new ArrayList<>();
+    private RecyclerView rvLog;
+    private LogAdapter logAdapter;
     /**
      * 数据库存储的位置点
      */
@@ -84,11 +96,13 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     @Override
     protected void initView() {
         mHandler = new MainHandler(this);
+        initLog();
         slamWarePlatform = Robot.getInstance().getSlamWarePlatform();
         if (slamWarePlatform == null) {
-            ToastUtils.showShort("未实例化机器人");
+          /*  ToastUtils.showShort("未实例化机器人");
             finish();
-            return;
+            return;*/
+            ToastUtils.showShort("未实例化机器人");
         }
         ivShow = findViewById(R.id.ivShow);
         btnStartNav = findViewById(R.id.btnStartNav);
@@ -101,7 +115,14 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btnStartNav:
-                TourCooLogUtil.i(TAG, "点击了");
+                logI(TAG,"点击了");
+                showLoading("阿双方均氨基酸法律框架");
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeLoading();
+                    }
+                },2000);
                 break;
             default:
                 break;
@@ -141,11 +162,12 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                         sendEmptyMsg(HomeConstant.MSG_START);
                     } catch (Exception e) {
                         ToastUtils.showShort("地图初始化异常 原因---->" + e.toString());
-                        TourCooLogUtil.e(TAG, "地图初始化异常");
+                        logE(TAG,"地图初始化异常");
                     }
                     //加载地图和上次pose信息后
                 } else {
                     ToastUtils.showShort("数据加载异常");
+                    logE(TAG,"数据加载异常");
                 }
             }
         });
@@ -180,6 +202,16 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                         break;
                     case MSG_CLOSE_LOADING:
                         activity.closeLoading();
+                        break;
+                    case MSG_LOG_D:
+                        activity.logD(TAG,msg.obj);
+                        break;
+                    case MSG_LOG_I:
+                        activity.logI(TAG,msg.obj);
+                        break;
+                    case MSG_LOG_E:
+                        activity.logE(TAG,msg.obj);
+                        break;
                     default:
                         break;
                 }
@@ -234,6 +266,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private void handleLocationTarget(LocationModel locationModel) {
         if (locationModel == null || locationModel.getLocal() == 0) {
             ToastUtils.showShort("目的地为null");
+            logE(TAG,"目的地为null");
             return;
         }
         ThreadPoolManager.getThreadPoolProxy().execute(() -> {
@@ -319,9 +352,72 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
 
-    private void closeLoadingDialog(){
+    private void closeLoadingDialog() {
         Message message = mHandler.obtainMessage();
         message.what = MSG_CLOSE_LOADING;
         mHandler.sendMessage(message);
     }
+
+    private void logI(String tag, Object log) {
+        if(isMainThread()){
+            TourCooLogUtil.i(tag, log);
+            logList.add(createLogInfo(log, LogLevel.TYPE_INFO));
+            logAdapter.notifyItemInserted(logList.size() - 1);
+            rvLog.scrollToPosition(logList.size()-1);
+            rvLog.scrollToPosition(logList.size()-1);
+        }else {
+            sendMessage(MSG_LOG_I,log);
+        }
+    }
+
+    private void logD(String tag, Object log) {
+        if(isMainThread()){
+            TourCooLogUtil.d(tag, log);
+            logList.add(createLogInfo(log, LogLevel.TYPE_DEBUG));
+            logAdapter.notifyItemInserted(logList.size() - 1);
+            rvLog.scrollToPosition(logList.size()-1);
+        }else {
+            sendMessage(MSG_LOG_D,log);
+        }
+
+    }
+    private void logE(String tag, Object log) {
+        if(isMainThread()){
+            TourCooLogUtil.e(tag, log);
+            logList.add(createLogInfo(log, LogLevel.TYPE_ERROR));
+            logAdapter.notifyItemInserted(logList.size() - 1);
+            rvLog.scrollToPosition(logList.size()-1);
+        }else {
+            sendMessage(MSG_LOG_E,log);
+        }
+
+
+    }
+
+    private void sendMessage(int what,Object object) {
+        Message message = mHandler.obtainMessage();
+        message.what = what;
+        message.obj = object;
+        mHandler.sendMessage(message);
+    }
+
+
+    private void initLog() {
+        logList.clear();
+        rvLog = findViewById(R.id.rvLog);
+        rvLog.setLayoutManager(new LinearLayoutManager(this));
+        logAdapter = new LogAdapter();
+        logAdapter.bindToRecyclerView(rvLog);
+        logAdapter.setNewData(logList);
+    }
+
+    private LogInfo createLogInfo(Object log, int logLevel) {
+        LogInfo logInfo = new LogInfo();
+        logInfo.setTime(System.currentTimeMillis() + "");
+        logInfo.setLogContent(log.toString());
+        logInfo.setLogLevel(logLevel);
+        return logInfo;
+    }
+
+
 }

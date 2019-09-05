@@ -92,5 +92,7 @@ dependencies {
     implementation project(path: ':UARTKit')
     //日志写入引擎
     api 'com.apkfuns.log2file:log2file:1.1.0'
+    //万能适配器
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.49-androidx'
 
 }

@@ -35,4 +35,21 @@ public class HomeConstant {
      * 显示加载框
      */
     public static final int MSG_CLOSE_LOADING  = 103;
+
+
+    /**
+     * 日志
+     */
+    public static final int MSG_LOG_I  = 105;
+
+    /**
+     * 日志
+     */
+    public static final int MSG_LOG_D  = 106;
+
+
+    /**
+     * 日志
+     */
+    public static final int MSG_LOG_E  = 107;
 }

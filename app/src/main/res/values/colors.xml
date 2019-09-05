@@ -6,4 +6,23 @@
     <color name="red">#FFFF002C</color>
     <color name="transparent">#00000000</color>
     <color name="white">#ffffff</color>
+    <color name="blue33bafc">#33bafc</color>
+    <color name="blue34b0fc">#34b0fc</color>
+
+    <!--绿色区域-->
+    <color name="green0DBD00">#0DBD00</color>
+
+    <!--红色区域-->
+    <color name="redF35757">#F35757</color>
+    <color name="redD10303">#D10303</color>
+
+    <!--橙色区域-->
+    <color name="orangeFE7000">#FE7000</color>
+    <color name="orangeFEF4EC">#FEF4EC</color>
+
+    <!--黄色区域-->
+    <color name="yellowFFB400">#FFB400</color>
+
+    <color name="gray666666">#666666</color>
+
 </resources>
