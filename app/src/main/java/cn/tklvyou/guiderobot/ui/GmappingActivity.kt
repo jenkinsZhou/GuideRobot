@@ -14,6 +14,7 @@ import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
 import cn.tklvyou.guiderobot.utils.MathUtil
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
+import cn.tklvyou.guiderobot.manager.Robot
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.NavLocation
 import cn.tklvyou.guiderobot.widget.RockerView
@@ -31,9 +32,11 @@ import com.slamtec.slamware.action.IMoveAction
 import com.slamtec.slamware.exceptions.*
 import kotlinx.android.synthetic.main.activity_gmapping.*
 import com.slamtec.slamware.action.MoveDirection
+import com.slamtec.slamware.discovery.DeviceManager
 import com.slamtec.slamware.robot.*
 import java.util.*
 import com.slamtec.slamware.sdp.CompositeMapHelper
+import kotlinx.android.synthetic.main.activity_splash.*
 
 
 class GmappingActivity : BaseActivity(), View.OnClickListener {
@@ -290,6 +293,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                                                 }
 
                                             }, {
+                                                ToastUtils.showShort(it.toString())
                                                 it.printStackTrace()
                                             })
                                 }
@@ -351,7 +355,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         LogUtils.i(TAG, "当前的yaw:$yaw")
                     }
                     R.id.tvTest0 ->{
-                        var  currentPose = robotPlatform!!.pose
+                   /*     var  currentPose = robotPlatform!!.pose
                         var rotation = currentPose?.rotation
                         var yaw = rotation?.yaw
                         LogUtils.d(TAG, "当前的yaw:$yaw")
@@ -361,7 +365,8 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         robotPlatform!!.pose = currentPose
                         val rotation1 = Rotation(-MathUtil.PI*2)
                         val action = robotPlatform!!.rotate(rotation1)
-                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")
+                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")*/
+                        skipMainActivity()
                     }
 //                    R.id.saveOriginPoint -> {
 //                        val compisteMap = robotPlatform!!.compositeMap
@@ -489,5 +494,41 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         }
     }
 
+
+    private fun skipMainActivity(){
+        showDialog()
+        btnNavigation.isEnabled = false
+        val ipStr = editTextIp.text.toString().trim()
+        if (ipStr.isEmpty()) {
+            ToastUtils.showShort("请输入机器人IP地址")
+        } else {
+            Thread(Runnable {
+                try {
+                    val robotPlatform = DeviceManager.connect(ipStr, 1445)
+                    if (robotPlatform == null) {
+                        ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                    } else {
+                        Robot.getInstance().slamWarePlatform = robotPlatform
+                        (application as MyApplication).setRobotPlatform(robotPlatform)
+                        ToastUtils.showShort("连接成功")
+                            val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                    }
+                    hideDialog()
+                    finish()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    if (e is ConnectionTimeOutException) {
+                        ToastUtils.showShort("连接超时，请检查网络")
+                    } else {
+                        ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                    }
+                    hideDialog()
+                }
+            }).start()
+
+        }
+        btnNavigation.isEnabled = true
+    }
 
 }

@@ -19,4 +19,20 @@ public class HomeConstant {
      * 执行动作
      */
     public static final int MSG_DO_ACTION  = 1000;
+
+    /**
+     * 显示吐司
+     */
+    public static final int MSG_TOAST  = 101;
+
+    /**
+     * 显示加载框
+     */
+    public static final int MSG_SHOW_LOADING  = 102;
+
+
+    /**
+     * 显示加载框
+     */
+    public static final int MSG_CLOSE_LOADING  = 103;
 }

@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Looper;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -14,6 +16,7 @@ import com.iflytek.aiui.uartkit.UARTAgent;
 import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis;
 
 import cn.tklvyou.guiderobot.widget.LoadingProgressDialog;
+import cn.tklvyou.guiderobot.widget.dialog.FrameLoadingDialog;
 import cn.tklvyou.guiderobot_new.R;
 
 /**
@@ -25,6 +28,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
     private MyApplication application;
     private AIUITextSynthesis aiuiTextSynthesis;
     protected LoadingProgressDialog dialog;
+    protected FrameLoadingDialog loadingDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,6 +39,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
         aiuiTextSynthesis = application.getAIUITextSynthesis();
         aiuiTextSynthesis.setITTSListener(this);
         dialog = new LoadingProgressDialog(this);
+        loadingDialog = new FrameLoadingDialog(this, "加载中...");
         initView();
     }
 
@@ -77,4 +82,33 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
     }
 
 
+    public boolean isMainThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
+    }
+
+
+    protected void showLoading(String msg) {
+        if (loadingDialog != null && !loadingDialog.isShowing()) {
+            if (!TextUtils.isEmpty(msg)) {
+                loadingDialog.setLoadingText(msg);
+            }
+            loadingDialog.show();
+        }
+    }
+
+
+    public void closeLoading() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+    }
+
+
+    protected void setViewVisible(View view, boolean visible) {
+        if(visible){
+            view.setVisibility(View.VISIBLE);
+        }else {
+            view.setVisibility(View.INVISIBLE);
+        }
+    }
 }

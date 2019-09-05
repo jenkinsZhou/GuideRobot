@@ -109,6 +109,7 @@
         <TextView
             android:id="@+id/tvTest0"
             android:text="测试0"
+            android:padding="@dimen/dp_10"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <Button

@@ -11,6 +11,7 @@ import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
 import cn.tklvyou.guiderobot.base.MyApplication
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
+import cn.tklvyou.guiderobot.manager.Robot
 import cn.tklvyou.guiderobot.model.NavLocation
 import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
@@ -45,17 +46,17 @@ class SplashActivity : BaseActivity() {
                 Thread(Runnable {
                     try {
                         val robotPlatform = DeviceManager.connect(ipStr, 1445)
+                        Robot.getInstance().slamWarePlatform = robotPlatform
                         if (robotPlatform == null) {
                             ToastUtils.showShort("连接失败，请输入正确的IP地址")
                         } else {
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             //配置底盘路由模式——中继
-                            TourCooLogUtil.i("已执行")
                             val options = HashMap<String, String>()
                             options.put("ssid", "Robot")
                             options.put("password", "12345678")
                             val isSuccess = robotPlatform.configureNetwork(NetworkMode.NetworkModeStation, options)
-                                TourCooLogUtil.i("是否连接成功:$isSuccess")
+
                             ToastUtils.showShort("连接成功")
                             val intent = Intent(this, GmappingActivity::class.java)
                             startActivity(intent)
@@ -67,7 +68,8 @@ class SplashActivity : BaseActivity() {
                         if (e is ConnectionTimeOutException) {
                             ToastUtils.showShort("连接超时，请检查网络")
                         } else {
-                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+//                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                            ToastUtils.showShort(e.toString())
                         }
                         hideDialog()
                     }
@@ -85,7 +87,6 @@ class SplashActivity : BaseActivity() {
         }
 
         btnNavigation.setOnClickListener {
-            dialog = null
             showDialog()
             btnNavigation.isEnabled = false
             val ipStr = editTextIp.text.toString().trim()
@@ -98,9 +99,11 @@ class SplashActivity : BaseActivity() {
                         if (robotPlatform == null) {
                             ToastUtils.showShort("连接失败，请输入正确的IP地址")
                         } else {
+                            Robot.getInstance().slamWarePlatform = robotPlatform
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             ToastUtils.showShort("连接成功")
-                            val intent = Intent(this, MainActivity::class.java)
+//                            val intent = Intent(this, MainActivity::class.java)
+                            val intent = Intent(this, GuideActivity::class.java)
                             startActivity(intent)
                         }
                         hideDialog()
@@ -139,9 +142,10 @@ class SplashActivity : BaseActivity() {
                         if (robotPlatform == null) {
                             ToastUtils.showShort("连接失败，请输入正确的IP地址")
                         } else {
+                            Robot.getInstance().slamWarePlatform = robotPlatform
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             ToastUtils.showShort("连接成功")
-                            val intent = Intent(this, MainActivity::class.java)
+                            val intent = Intent(this, GuideActivity::class.java)
                             startActivity(intent)
                         }
                         hideDialog()

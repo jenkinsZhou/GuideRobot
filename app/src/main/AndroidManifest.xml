@@ -49,6 +49,8 @@
 
         <activity android:name="cn.tklvyou.guiderobot.ui.MainActivity" />
         <activity android:name="cn.tklvyou.guiderobot.crash.CrashErrorActivity" />
+        <activity android:name="cn.tklvyou.guiderobot.ui.GmappingActivity" />
+        <activity android:name="cn.tklvyou.guiderobot.ui.GuideActivity" />
 
         <!--<activity android:name=".ui.SettingNavOrderActivity"/>-->
 

@@ -83,6 +83,7 @@ class MainActivity : BaseActivity() {
                                                 btnStartNav.visibility = View.VISIBLE
                                             }
                                             REQUEST_SUCCESS -> {
+                                                ToastUtils.showShort("请求成功")
                                                 index = 0
                                                 val model = result.data
                                                 nextId = model.next
@@ -110,6 +111,7 @@ class MainActivity : BaseActivity() {
 
                                     }, {
                                         it.printStackTrace()
+                                        ToastUtils.showShort(it.toString())
                                     })
                         }
                     }
@@ -119,6 +121,7 @@ class MainActivity : BaseActivity() {
                     }
 
                     MSG_DO_ACTION -> {
+                        ToastUtils.showShort("是否是主线程:$isMainThread")
                         val action_value = msg.data.getString("action")
                         LogUtils.e(action_value)
                         val ctrList = msg.obj as MutableList<LocationModel.ContentBean>
@@ -302,7 +305,9 @@ class MainActivity : BaseActivity() {
         //先获取当前位置信息
         val currentPose = robotPlatform!!.pose
         //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
-        val line = Line((currentNavLocation.id as Int), currentPose.x, currentPose.y, currentNavLocation.x, currentNavLocation.y)
+        val segmentId = java.lang.Long.valueOf(currentNavLocation.id).toInt()
+        val line = Line(segmentId, currentPose.x, currentPose.y, currentNavLocation.x, currentNavLocation.y)
+        TourCooLogUtil.i("虚拟线路",line)
         //添加虚拟路径
         robotPlatform!!.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line)
         val location = Location(currentNavLocation.x, currentNavLocation.y, currentNavLocation.z)
@@ -330,7 +335,6 @@ class MainActivity : BaseActivity() {
 
             val compositeMapHelper = CompositeMapHelper()
             val compositeMap = compositeMapHelper.loadFile(path)
-
             val poseJson = SPUtils.getInstance().getString("pose")
             if (poseJson.isNotEmpty() && compositeMap != null) {
                 robotPlatform!!.setCompositeMap(compositeMap, Gson().fromJson<Pose>(poseJson, Pose::class.java))
@@ -434,7 +438,7 @@ class MainActivity : BaseActivity() {
             speckTextSynthesis(list[index].value, index == list.size - 1)
             return
         } else {
-            //如果当前的type是动作 则延迟执行动作
+            //如果当前的type是动作 则延迟200毫秒执行动作
             val bundle = Bundle()
             bundle.putString("action", list[index].value)
             val ctrMsg = Message()
@@ -485,25 +489,27 @@ class MainActivity : BaseActivity() {
     }
 
     /**
-     * 根据转动action执行对应动作
+     * 根据转动action执行对应动作（转身）
      */
     private fun doBodyRotating(action: String) {
         when (action) {
             LEFT_HANDED_ROTATION -> {
                 //身体左转
-                val rotation1 = Rotation(-MathUtil.PI * 2)
+                val rotation1 = Rotation(-MathUtil.PI*2 )
                 robotPlatform!!.rotate(rotation1)
             }
             RIGHT_HANDED_ROTATION -> {
                 //身体右转
-                val rotation1 = Rotation(-MathUtil.PI * 2)
+                val rotation1 = Rotation(-MathUtil.PI *2)
                 robotPlatform!!.rotate(rotation1)
             }
             else ->{
                 ToastUtils.showShort("未匹配到指令")
             }
         }
-
     }
+
+
+
 
 }

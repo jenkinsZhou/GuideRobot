@@ -105,7 +105,7 @@ class MyApplication : Application() {
         this.robotPlatform = robotPlatform
     }
 
-    public fun getRobotPlatform(): AbstractSlamwarePlatform {
+    public  fun getRobotPlatform(): AbstractSlamwarePlatform {
         return this.robotPlatform
     }
 

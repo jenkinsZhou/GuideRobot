@@ -93,6 +93,8 @@ public class MotorController {
                 initSerialParam();
             } else {
                 Log.e(TAG, "获取权限失败");
+                /*java*/
+
                 Toast.makeText(context, "权限获取失败，请重启再试", Toast.LENGTH_SHORT).show();
                 return;
             }
