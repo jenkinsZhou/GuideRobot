@@ -12,6 +12,9 @@ import cn.tklvyou.guiderobot.utils.HexUtils;
 
 public class RobotAction {
 
+    public static final String TYPE_TEXT = "text";
+
+    public static final String TYPE_ACTION = "action";
     //手臂动作指令
     public static final int LEFT_RIGHT_HANDS_ACTION = 1;
 
@@ -20,7 +23,8 @@ public class RobotAction {
 
     //身体转动
     public static final int HANDED_ROTATION_ACTION = 3;
-
+    //延时
+    public static final int DELAY_ACTION = 4;
 
     //等待1.5秒执行下一个动作
     public static final String AWAIT_TIME = "ACTION_AWAIT_TIME";
@@ -75,6 +79,8 @@ public class RobotAction {
         } else if (action.equals(LEFT_HANDED_ROTATION) || action.equals(RIGHT_HANDED_ROTATION)) {
             //身体左转或右转
             return new ControllerModel(HANDED_ROTATION_ACTION, action);
+        } else if (action.equalsIgnoreCase(AWAIT_TIME)) {
+            return  new ControllerModel(DELAY_ACTION, action);
         } else {
             return new ControllerModel(-1, null);
         }

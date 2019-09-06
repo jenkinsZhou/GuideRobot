@@ -9,12 +9,14 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.iflytek.aiui.uartkit.UARTAgent;
 import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis;
 
+import cn.tklvyou.guiderobot.manager.GlideManager;
 import cn.tklvyou.guiderobot.widget.LoadingProgressDialog;
 import cn.tklvyou.guiderobot.widget.dialog.FrameLoadingDialog;
 import cn.tklvyou.guiderobot_new.R;
@@ -105,10 +107,19 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
 
     protected void setViewVisible(View view, boolean visible) {
-        if(visible){
+        if (visible) {
             view.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             view.setVisibility(View.INVISIBLE);
+        }
+    }
+
+
+    protected void loadImage(Object data, ImageView imageView) {
+        if (isMainThread()) {
+            GlideManager.loadImg(data, imageView);
+        } else {
+            runOnUiThread(() -> GlideManager.loadImg(data, imageView));
         }
     }
 }

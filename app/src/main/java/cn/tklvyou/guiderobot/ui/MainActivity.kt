@@ -185,11 +185,7 @@ class MainActivity : BaseActivity() {
 
                                         }
                                     }
-
-
                                 }
-
-
                             }, 1500)
                         } else {
                             //如果是动作 则根据动作类型执行相应动作
