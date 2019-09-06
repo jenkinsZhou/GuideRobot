@@ -36,7 +36,7 @@ class SplashActivity : BaseActivity() {
 
 
     override fun initView() {
-        btnGMapping.setOnClickListener {
+        /*btnGMapping.setOnClickListener {
             showDialog()
             btnGMapping.isEnabled = false
             val ipStr = editTextIp.text.toString().trim()
@@ -77,9 +77,9 @@ class SplashActivity : BaseActivity() {
 
             }
             btnGMapping.isEnabled = true
-        }
+        }*/
 
-        btnExit.setOnClickListener {
+       /* btnExit.setOnClickListener {
             val intent = Intent(Intent.ACTION_MAIN)
             intent.addCategory(Intent.CATEGORY_HOME)
             startActivity(intent)
@@ -124,13 +124,14 @@ class SplashActivity : BaseActivity() {
             }
             btnNavigation.isEnabled = true
         }
-
+*/
 
     }
 
 
     override fun onInitSuccess() {
         super.onInitSuccess()
+        ToastUtils.showShort("语音模块初始化成功")
         btnNavigation.setOnClickListener {
             showDialog()
             btnNavigation.isEnabled = false
@@ -206,5 +207,8 @@ class SplashActivity : BaseActivity() {
         }
     }
 
-
+    override fun onInitFailed() {
+        super.onInitFailed()
+        ToastUtils.showShort("语音模块初始化失败")
+    }
 }

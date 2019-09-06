@@ -69,6 +69,7 @@ import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_D;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_E;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_I;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_SHOW_LOADING;
+import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_START;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_TOAST;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_SUCCESS;
@@ -84,7 +85,6 @@ import static cn.tklvyou.guiderobot.log.widget.config.LogLevel.TYPE_WARN;
 public class GuideActivity extends BaseActivity implements View.OnClickListener {
     private static final long END = 0L;
     private static final long ONE_SECOND = 1000L;
-    private IAction action = null;
     public static final String TAG = "GuideActivity";
     private ImageView ivShow;
     private ImageView btnStartNav;
@@ -95,6 +95,12 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private List<LogInfo> logList = new ArrayList<>();
     private RecyclerView rvLog;
     private LogAdapter logAdapter;
+    private long currentLocationId;
+    /**
+     * 语音是否说完
+     */
+    private boolean speakFinish = false;
+    private int waitCount;
     /**
      * 数据库存储的位置点
      */
@@ -212,7 +218,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 }
                 switch (msg.what) {
                     case HomeConstant.MSG_START:
-                        activity.requestFirstLocation();
+                        activity.requestLocationInfo(activity.currentLocationId);
                         break;
                     case MSG_TOAST:
                         ToastUtils.showShort((String) msg.obj);
@@ -255,11 +261,19 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
      * 请求网络 获取第一个讲解点的数据信息
      */
     @SuppressLint("CheckResult")
-    private void requestFirstLocation() {
-        showLoading("正在请求第一个位置点");
+    private void requestLocationInfo(long id) {
+        showLoading("正在请求位置信息");
+        if (id < 0) {
+            logI(TAG, "所有位置点讲解全部结束");
+            ToastUtils.showShort("本次讲解全部结束");
+            isTip = true;
+            speckTextSynthesis("本次讲解全部结束 感谢您的聆听! （备注:顶哥是真的帅！）", true);
+            closeLoading();
+            return;
+        }
         setViewVisible(btnStartNav, false);
         RetrofitHelper.getInstance().getServer()
-                .getLocationMessage(0)
+                .getLocationMessage(id)
                 .compose(RxSchedulers.applySchedulers())
                 .subscribe(result -> {
                     closeLoading();
@@ -269,8 +283,16 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                             setViewVisible(btnStartNav, true);
                             break;
                         case REQUEST_SUCCESS:
-                            logI("处理位置点", "正在处理位置点");
-                            handleLocationTarget(result.getData());
+                            LocationModel currentLocation = result.getData();
+                            if (currentLocation == null) {
+                                logE("处理位置点", "请求的位置点为null");
+                                ToastUtils.showShort("位置点信息为空");
+                                return;
+                            }
+                            logI("处理位置点", "正在处理位置点---->" + currentLocationId);
+                            currentLocationId = currentLocation.getNext();
+                            logD("处理位置点", "正在处理位置点:" + currentLocationId);
+                            handleLocationTarget(currentLocation);
                             break;
                         default:
                             break;
@@ -297,6 +319,10 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 if (mCurrentPositionInfo == null) {
                     ToastUtils.showShort("未获取到位置信息");
                     logE(TAG, "未获取到位置信息");
+                    logD(TAG, "延迟10秒后直接请求下一个讲解点信息");
+                    delay(ONE_SECOND * 10);
+                    logI(TAG, "即将请求下一个讲解点信息");
+                    sendEmptyMsg(MSG_START);
                     return;
                 }
                 logI(TAG, "正在加载位置图片...");
@@ -504,6 +530,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         if (actionList.isEmpty()) {
             logI("", "本次指令集全部执行完毕");
             showToast("本次指令集全部执行完毕");
+            sendEmptyMsg(HomeConstant.MSG_START);
             return;
         }
         //每次取出指令集中的第一条指令并执行
@@ -526,7 +553,17 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 //因为该指令即将执行 所以需要先移除当前指令
                 actionList.remove(actionBean);
                 logI(TAG, "即将开始执行语音指令（即将开始说话）...");
+                //将语音说话状态置为未说完状态
+                speakFinish = false;
                 speckTextSynthesis(actionBean.getType(), false);
+                //如果是语音指令 则必须要等到语音说完才能执行下一步 否则一直阻塞线程
+               while (!speakFinish || !(waitCount >8) ){
+                   delay(1000);
+                   waitCount++;
+                   logD(TAG, "等待说话结束...");
+               }
+                logI(TAG, "已经退出死循环...");
+                waitCount = 0;
                 break;
             case TYPE_ACTION:
                 //动作指令
@@ -549,14 +586,16 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     @Override
     public void playComplete() {
         super.playComplete();
+        //说话结束 因此需要置为说话完成状态
+        ToastUtils.showShort("小女孩说话已经结束");
         if (isTip) {
             isTip = false;
         } else {
+            speakFinish = true;
             logD(TAG, "语音指令执行完毕");
             //语音指令执行完毕 则开始执行下一条指令
             logI(TAG, "即将继续执行executeAction(mCurrentActionList) 方法 --->也就是当前位置的下一条指令");
             logE(TAG, "语音指令执行完毕");
-            executeActionByActionList(mCurrentActionList);
         }
     }
 
