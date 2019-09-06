@@ -48,7 +48,7 @@ public class AIUITextSynthesis {
                         break;
 
                     case UARTConstant.EVENT_INIT_FAILED:
-                        Log.d(TAG, "Init UART Failed");
+                        Log.e(TAG, "Init UART Failed");
                         if(listener != null){
                             listener.onInitFailed();
                         }
