@@ -9,5 +9,5 @@ package cn.tklvyou.guiderobot.utils;
  */
 public class MathUtil {
 
-    public static final float PI = 3.14f;
+    public static final float PI = 3.1415926f;
 }

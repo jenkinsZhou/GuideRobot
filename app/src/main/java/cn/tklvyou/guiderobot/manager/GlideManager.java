@@ -207,7 +207,7 @@ public class GlideManager {
     private static RequestOptions getRequestOptions() {
         RequestOptions requestOptions = new RequestOptions()
                 // 填充方式
-                .centerCrop()
+//                .centerCrop()
                 //优先级
                 .priority(Priority.HIGH)
                 //缓存策略

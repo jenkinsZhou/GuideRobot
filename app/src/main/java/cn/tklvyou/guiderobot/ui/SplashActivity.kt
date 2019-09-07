@@ -36,7 +36,13 @@ class SplashActivity : BaseActivity() {
 
 
     override fun initView() {
-        /*btnGMapping.setOnClickListener {
+        btnExit.setOnClickListener {
+            val intent = Intent(Intent.ACTION_MAIN)
+            intent.addCategory(Intent.CATEGORY_HOME)
+            startActivity(intent)
+            System.exit(0)
+        }
+        btnGMapping.setOnClickListener {
             showDialog()
             btnGMapping.isEnabled = false
             val ipStr = editTextIp.text.toString().trim()
@@ -77,7 +83,7 @@ class SplashActivity : BaseActivity() {
 
             }
             btnGMapping.isEnabled = true
-        }*/
+        }
 
        /* btnExit.setOnClickListener {
             val intent = Intent(Intent.ACTION_MAIN)

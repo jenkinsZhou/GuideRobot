@@ -10,8 +10,6 @@ import android.view.View
 import com.blankj.utilcode.util.LogUtils
 import com.slamtec.slamware.sdp.CompositeMapHelper
 import cn.tklvyou.guiderobot.RobotAction
-import cn.tklvyou.guiderobot.RobotAction.LEFT_HANDED_ROTATION
-import cn.tklvyou.guiderobot.RobotAction.RIGHT_HANDED_ROTATION
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
@@ -489,7 +487,7 @@ class MainActivity : BaseActivity() {
      */
     private fun doBodyRotating(action: String) {
         when (action) {
-            LEFT_HANDED_ROTATION -> {
+         /*   ACTI -> {
                 //身体左转
                 val rotation1 = Rotation(-MathUtil.PI*2 )
                 robotPlatform!!.rotate(rotation1)
@@ -501,7 +499,7 @@ class MainActivity : BaseActivity() {
             }
             else ->{
                 ToastUtils.showShort("未匹配到指令")
-            }
+            }*/
         }
     }
 

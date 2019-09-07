@@ -62,25 +62,39 @@ public class RobotAction {
     public static final String RIGHT_HANDS_DOWN = "ACTION_RIGHT_HANDS_DOWN";
 
 
-    //身体左转
-    public static final String LEFT_HANDED_ROTATION = "ACTION_LEFT_HANDED_ROTATION";
+    //身体左转30度
+    public static final String ACTION_ROTATION_TURN_LEFT_30 = "ACTION_ROTATION_TURN_LEFT_30";
 
-    //身体右转
-    public static final String RIGHT_HANDED_ROTATION = "ACTION_RIGHT_HANDED_ROTATION";
+    //身体右转30度
+    public static final String ACTION_ROTATION_TURN_RIGHT_30 = "ACTION_ROTATION_TURN_RIGHT_30";
 
+    //身体左转45度
+    public static final String ACTION_ROTATION_TURN_LEFT_45 = "ACTION_ROTATION_TURN_LEFT_45";
+
+    //身体右转45度
+    public static final String ACTION_ROTATION_TURN_RIGHT_45 = "ACTION_ROTATION_TURN_RIGHT_45";
+
+    //身体左转90度
+    public static final String ACTION_ROTATION_TURN_LEFT_90 = "ACTION_ROTATION_TURN_LEFT_90";
+
+    //身体右转90度
+    public static final String ACTION_ROTATION_TURN_RIGHT_90 = "ACTION_ROTATION_TURN_RIGHT_90";
 
     public static ControllerModel getControllerCommand(String action) {
+        boolean isRotationAction = ACTION_ROTATION_TURN_LEFT_30.equalsIgnoreCase(action) || ACTION_ROTATION_TURN_RIGHT_30.equalsIgnoreCase(action) ||
+                ACTION_ROTATION_TURN_LEFT_45.equalsIgnoreCase(action) || ACTION_ROTATION_TURN_RIGHT_45.equalsIgnoreCase(action) || ACTION_ROTATION_TURN_LEFT_90.equalsIgnoreCase(action) ||
+                ACTION_ROTATION_TURN_RIGHT_90.equalsIgnoreCase(action);
         if (action.equals(LEFT_HANDS_UP) || action.equals(LEFT_HANDS_FRONT) || action.equals(LEFT_HANDS_DOWN)
                 || action.equals(RIGHT_HANDS_UP) || action.equals(RIGHT_HANDS_FRONT) || action.equals(RIGHT_HANDS_DOWN)) {
             byte[] params = getHandsCommand(action);
             return new ControllerModel(LEFT_RIGHT_HANDS_ACTION, params);
         } else if (action.equals(HEAD_LED_LIGHT) || action.equals(HEAD_LED_BREATHE) || action.equals(HEAD_LED_CLOSE)) {
             return new ControllerModel(HEAD_LED_ACTION, getHeadLedCommand(action));
-        } else if (action.equals(LEFT_HANDED_ROTATION) || action.equals(RIGHT_HANDED_ROTATION)) {
+        } else if (isRotationAction) {
             //身体左转或右转
             return new ControllerModel(HANDED_ROTATION_ACTION, action);
         } else if (action.equalsIgnoreCase(AWAIT_TIME)) {
-            return  new ControllerModel(DELAY_ACTION, action);
+            return new ControllerModel(DELAY_ACTION, action);
         } else {
             return new ControllerModel(-1, null);
         }

@@ -7,6 +7,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,11 +55,14 @@ import cn.tklvyou.guiderobot.utils.MathUtil;
 import cn.tklvyou.guiderobot.utils.MotorController;
 import cn.tklvyou.guiderobot_new.R;
 import cn.tklvyou.serialportlibrary.SerialPort;
-import io.reactivex.functions.Consumer;
-import io.reactivex.internal.observers.BasicFuseableObserver;
 
-import static cn.tklvyou.guiderobot.RobotAction.LEFT_HANDED_ROTATION;
-import static cn.tklvyou.guiderobot.RobotAction.RIGHT_HANDED_ROTATION;
+import static cn.tklvyou.guiderobot.CommonConfig.DEBUG_MODE;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_LEFT_30;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_LEFT_45;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_LEFT_90;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_30;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_45;
+import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_90;
 import static cn.tklvyou.guiderobot.RobotAction.TYPE_ACTION;
 import static cn.tklvyou.guiderobot.RobotAction.TYPE_TEXT;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_CLOSE_LOADING;
@@ -71,6 +75,7 @@ import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_TOAST;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_SUCCESS;
 import static cn.tklvyou.guiderobot.log.widget.config.LogLevel.TYPE_WARN;
+import static java.lang.Integer.MIN_VALUE;
 
 /**
  * @author :JenkinsZhou
@@ -90,6 +95,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private AbstractSlamwarePlatform slamWarePlatform;
     private NavLocation mCurrentPositionInfo;
     private List<LogInfo> logList = new ArrayList<>();
+    private LinearLayout llLogArea;
     private RecyclerView rvLog;
     private LogAdapter logAdapter;
     private long currentLocationId;
@@ -263,7 +269,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             logI(TAG, "所有位置点讲解全部结束");
             ToastUtils.showShort("本次讲解全部结束");
             isTip = true;
-            speckTextSynthesis("本次讲解全部结束 感谢您的聆听! （备注:顶哥是真的帅！）", true);
+            speckTextSynthesis("讲解点全部执行完毕!", true);
             closeLoading();
             return;
         }
@@ -355,9 +361,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         }
         try {
             logI(TAG, "准备正在行走(模拟)...2秒钟后显示弹窗");
-            delay(2000);
-            showLoadingDialog("正在模拟行走...10秒后关闭弹窗");
-            delay(10000);
+            delay(ONE_SECOND * 2);
+            showLoadingDialog("正在模拟行走...5秒后关闭弹窗");
+            delay(ONE_SECOND * 5);
             closeLoadingDialog();
           /*  MoveOption moveOption = new MoveOption();
             //机器人移动的时候精确到点
@@ -417,6 +423,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
     private void logI(String tag, Object log) {
+        if (!DEBUG_MODE) {
+            return;
+        }
         if (isMainThread()) {
             TourCooLogUtil.i(tag, log);
             logList.add(createLogInfo(log, LogLevel.TYPE_INFO));
@@ -428,6 +437,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
     private void logD(String tag, Object log) {
+        if (!DEBUG_MODE) {
+            return;
+        }
         if (isMainThread()) {
             TourCooLogUtil.d(tag, log);
             logList.add(createLogInfo(log, LogLevel.TYPE_DEBUG));
@@ -440,6 +452,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
     private void logE(String tag, Object log) {
+        if (!DEBUG_MODE) {
+            return;
+        }
         if (isMainThread()) {
             TourCooLogUtil.e(tag, log);
             logList.add(createLogInfo(log, LogLevel.TYPE_ERROR));
@@ -451,6 +466,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
     private void logW(String tag, Object log) {
+        if (!DEBUG_MODE) {
+            return;
+        }
         if (isMainThread()) {
             TourCooLogUtil.e(tag, log);
             logList.add(createLogInfo(log, TYPE_WARN));
@@ -471,11 +489,13 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     private void initLog() {
         logList.clear();
+        llLogArea = findViewById(R.id.llLogArea);
         rvLog = findViewById(R.id.rvLog);
         rvLog.setLayoutManager(new LinearLayoutManager(this));
         logAdapter = new LogAdapter();
         logAdapter.bindToRecyclerView(rvLog);
         logAdapter.setNewData(logList);
+        setViewGone(llLogArea, DEBUG_MODE);
     }
 
     private LogInfo createLogInfo(Object log, int logLevel) {
@@ -554,8 +574,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 speckTextSynthesis(actionBean.getValue(), false);
                 //如果是语音指令 则必须要等到语音说完才能执行下一步 否则一直阻塞线程
                 while ((!speakFinish)) {
-                    delay(1000);
-                    logD(TAG, "等待说话结束...——>说话是否结束 = " +speakFinish );
+                    delay(ONE_SECOND);
+                    logD(TAG, "等待说话结束...——>说话是否结束 = " + speakFinish);
                 }
                 logI(TAG, "已经退出死循环...");
                 break;
@@ -618,8 +638,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     doBodyRotating((String) actionModel.getParams());
                     break;
                 case RobotAction.DELAY_ACTION:
-                    logI("doAction", "doAction 执行延时1.5");
-                    showToast("当前动作是延迟1.5");
+                    logI("doAction", "doAction 执行延时1.5秒");
+                    showToast("当前动作是延迟1.5秒");
                     delay(1500);
                     break;
                 default:
@@ -639,22 +659,43 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
      */
     private void doBodyRotating(String action) {
         try {
-            Rotation rotation;
-            IMoveAction moveAction;
             switch (action) {
-                case LEFT_HANDED_ROTATION:
-                    //身体左转
+                case ACTION_ROTATION_TURN_LEFT_30:
+                    //身体左转30度
+                    turnLeftByAngle(slamWarePlatform,30);
+                  /*  Pose pose = slamWarePlatform.getPose();
+                    pose.getRotation();
                     rotation = new Rotation(0);
+                    ,
                     moveAction = slamWarePlatform.rotate(rotation);
+                    //该方法为阻塞方法 会阻塞线程
                     moveAction.waitUntilDone();
-                    logD("doBodyRotating", "左转指令执行完毕");
+                    logD("doBodyRotating", "左转指令执行完毕");*/
+                    logD("doBodyRotating", "左转30度指令执行完毕");
+
                     break;
-                case RIGHT_HANDED_ROTATION:
-                    //身体右转
-                    rotation = new Rotation(0);
-                    moveAction = slamWarePlatform.rotate(rotation);
-                    moveAction.waitUntilDone();
-                    logD("doBodyRotating", "右转指令执行完毕");
+                case ACTION_ROTATION_TURN_LEFT_45:
+                    //身体左转30度
+                    turnLeftByAngle(slamWarePlatform,45);
+                    logD("doBodyRotating", "左转45度指令执行完毕");
+
+                    break;
+                case ACTION_ROTATION_TURN_LEFT_90:
+                    //身体左转30度
+                    turnLeftByAngle(slamWarePlatform,90);
+                    logD("doBodyRotating", "左转90度指令执行完毕");
+                    break;
+                case ACTION_ROTATION_TURN_RIGHT_30:
+                    turnRightByAngle(slamWarePlatform, 30);
+                    logD("doBodyRotating", "右转30度指令执行完毕");
+                    break;
+                case ACTION_ROTATION_TURN_RIGHT_45:
+                    turnRightByAngle(slamWarePlatform, 45);
+                    logD("doBodyRotating", "右转45度指令执行完毕");
+                    break;
+                case ACTION_ROTATION_TURN_RIGHT_90:
+                    turnRightByAngle(slamWarePlatform, 90);
+                    logD("doBodyRotating", "右转90度指令执行完毕");
                     break;
                 default:
                     logW(TAG, "未匹配到转身指令");
@@ -663,6 +704,105 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             }
         } catch (Exception e) {
             logE(TAG, "doBodyRotating()执行异常---->原因:" + e.toString());
+        }
+    }
+
+    /**
+     * 根据角度进行左转
+     */
+    private void turnLeftByAngle(AbstractSlamwarePlatform platform, int angel) {
+        try {
+            if (platform == null) {
+                logE(TAG, "当前currentPose或platform实例为null");
+                return;
+            }
+            logD(TAG, "准备执行左转");
+            Pose currentPose = platform.getPose();
+            Rotation currentRotation = currentPose.getRotation();
+            float currentYaw = currentRotation.getYaw();
+            logD(TAG, "当前currentYaw值:" + currentYaw);
+            float yaw;
+            switch (angel) {
+                case 30:
+                    //左转30度
+                    yaw = -MathUtil.PI / 6;
+                    break;
+                case 45:
+                    //左转45度
+                    yaw = -MathUtil.PI / 4;
+                    break;
+                case 90:
+                    //左转90度
+                    yaw = -MathUtil.PI / 2;
+                    break;
+                default:
+                    yaw = MIN_VALUE;
+                    break;
+            }
+            if (yaw == MIN_VALUE) {
+                showToast("未匹配到转身指令");
+                logE(TAG, "未匹配到转身指令");
+                return;
+            }
+            currentRotation.setYaw(yaw);
+            IMoveAction turnAction = platform.rotate(currentRotation);
+            //该方法为阻塞方法 会阻塞线程
+            turnAction.waitUntilDone();
+            logI(TAG, "左转结束");
+            logI(TAG, "旋转的角度值:" + yaw);
+            logD(TAG, "旋转后的currentYaw值:" + currentYaw);
+        } catch (Exception e) {
+            logE(TAG, "turnLeftByAngle()异常 原因---->" + e.toString());
+        }
+    }
+
+
+    /**
+     * 根据角度进行右转
+     */
+    private void turnRightByAngle(AbstractSlamwarePlatform platform, int angel) {
+        try {
+            if (platform == null) {
+                logE(TAG, "当前currentPose或platform实例为null");
+                return;
+            }
+            logD(TAG, "准备执行右转");
+            Pose currentPose = platform.getPose();
+            Rotation currentRotation = currentPose.getRotation();
+            float currentYaw = currentRotation.getYaw();
+            logD(TAG, "当前currentYaw值:" + currentYaw);
+            float yaw;
+            switch (angel) {
+                case 30:
+                    //右转30度
+                    yaw = MathUtil.PI / 6;
+                    break;
+                case 45:
+                    //右转45度
+                    yaw = MathUtil.PI / 4;
+                    break;
+                case 90:
+                    //右转90度
+                    yaw = MathUtil.PI / 2;
+                    break;
+                default:
+                    yaw = MIN_VALUE;
+                    break;
+            }
+            if (yaw == MIN_VALUE) {
+                showToast("未匹配到转身指令");
+                logE(TAG, "未匹配到转身指令");
+                return;
+            }
+            currentRotation.setYaw(yaw);
+            IMoveAction turnAction = platform.rotate(currentRotation);
+            //该方法为阻塞方法 会阻塞线程
+            turnAction.waitUntilDone();
+            logI(TAG, "右转结束");
+            logI(TAG, "旋转的角度值:" + yaw);
+            logD(TAG, "旋转后的currentYaw值:" + currentYaw);
+        } catch (Exception e) {
+            logE(TAG, "turnRightByAngle()异常 原因---->" + e.toString());
         }
     }
 

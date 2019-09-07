@@ -113,7 +113,13 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
             view.setVisibility(View.INVISIBLE);
         }
     }
-
+    protected void setViewGone(View view, boolean visible) {
+        if (visible) {
+            view.setVisibility(View.VISIBLE);
+        } else {
+            view.setVisibility(View.GONE);
+        }
+    }
 
     protected void loadImage(Object data, ImageView imageView) {
         if (isMainThread()) {
