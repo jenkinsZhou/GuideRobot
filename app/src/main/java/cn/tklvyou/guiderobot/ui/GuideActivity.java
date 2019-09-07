@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -15,9 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
-import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.iflytek.aiui.uartkit.ctrdemo.util.ToastUtil;
 import com.slamtec.slamware.AbstractSlamwarePlatform;
 import com.slamtec.slamware.action.ActionStatus;
 import com.slamtec.slamware.action.IAction;
@@ -100,7 +97,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
      * 语音是否说完
      */
     private boolean speakFinish = false;
-    private int waitCount;
     /**
      * 数据库存储的位置点
      */
@@ -555,15 +551,13 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 logI(TAG, "即将开始执行语音指令（即将开始说话）...");
                 //将语音说话状态置为未说完状态
                 speakFinish = false;
-                speckTextSynthesis(actionBean.getType(), false);
+                speckTextSynthesis(actionBean.getValue(), false);
                 //如果是语音指令 则必须要等到语音说完才能执行下一步 否则一直阻塞线程
-               while (!speakFinish || !(waitCount >8) ){
-                   delay(1000);
-                   waitCount++;
-                   logD(TAG, "等待说话结束...");
-               }
+                while ((!speakFinish)) {
+                    delay(1000);
+                    logD(TAG, "等待说话结束...——>说话是否结束 = " +speakFinish );
+                }
                 logI(TAG, "已经退出死循环...");
-                waitCount = 0;
                 break;
             case TYPE_ACTION:
                 //动作指令
@@ -587,11 +581,11 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     public void playComplete() {
         super.playComplete();
         //说话结束 因此需要置为说话完成状态
+        speakFinish = true;
         ToastUtils.showShort("小女孩说话已经结束");
         if (isTip) {
             isTip = false;
         } else {
-            speakFinish = true;
             logD(TAG, "语音指令执行完毕");
             //语音指令执行完毕 则开始执行下一条指令
             logI(TAG, "即将继续执行executeAction(mCurrentActionList) 方法 --->也就是当前位置的下一条指令");
@@ -607,6 +601,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             logE("", "动作为null或不是动作类型");
             return;
         }
+
         try {
             ControllerModel actionModel = RobotAction.getControllerCommand(action.getValue());
             switch (actionModel.getType()) {
@@ -649,14 +644,14 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             switch (action) {
                 case LEFT_HANDED_ROTATION:
                     //身体左转
-                    rotation = new Rotation(-MathUtil.PI);
+                    rotation = new Rotation(0);
                     moveAction = slamWarePlatform.rotate(rotation);
                     moveAction.waitUntilDone();
                     logD("doBodyRotating", "左转指令执行完毕");
                     break;
                 case RIGHT_HANDED_ROTATION:
                     //身体右转
-                    rotation = new Rotation(MathUtil.PI);
+                    rotation = new Rotation(0);
                     moveAction = slamWarePlatform.rotate(rotation);
                     moveAction.waitUntilDone();
                     logD("doBodyRotating", "右转指令执行完毕");
@@ -669,7 +664,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         } catch (Exception e) {
             logE(TAG, "doBodyRotating()执行异常---->原因:" + e.toString());
         }
-
-
     }
+
+
 }

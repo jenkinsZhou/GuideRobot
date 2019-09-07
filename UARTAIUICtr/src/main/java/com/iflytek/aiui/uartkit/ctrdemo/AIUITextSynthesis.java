@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.iflytek.aiui.uartkit.UARTAgent;
 import com.iflytek.aiui.uartkit.constant.UARTConstant;
+import com.iflytek.aiui.uartkit.core.util.UARTLogger;
 import com.iflytek.aiui.uartkit.ctrdemo.processor.OTAProcessor;
 import com.iflytek.aiui.uartkit.ctrdemo.processor.SmartConfigProcessor;
 import com.iflytek.aiui.uartkit.entity.AIUIPacket;
@@ -27,7 +28,7 @@ import java.util.Arrays;
 
 public class AIUITextSynthesis {
 
-    private static final String TAG = "UART_Controller";
+    private static final String TAG = "AIUITextSynthesis";
 
     public UARTAgent mAgent;
     private Context context;
@@ -64,6 +65,10 @@ public class AIUITextSynthesis {
                         MsgPacket sendPacket = (MsgPacket) event.data;
                         mAgent.sendMessage(sendPacket);
                     default:
+                        Log.w(TAG, "createAgent--->正在说话中:"+event.eventType);
+                        if(listener != null){
+                            listener.onInitFailed();
+                        }
                         break;
                 }
             }
@@ -108,13 +113,16 @@ public class AIUITextSynthesis {
                 Log.d(TAG, "data " + data);
             } else {
                 Log.d(TAG, "type: " + type);
-                if(type.equals("tts_event")){
+                if(type.equalsIgnoreCase("tts_event")){
                     String contentJson = data.optString("content");
                     JSONObject contentData = new JSONObject(contentJson);
                     int eventType = contentData.optInt("eventType");
                     int error = contentData.optInt("error");
+                    UARTLogger.log(TAG,"json内容："+contentJson);
                     if(eventType == 1 && error == 0){
+                        UARTLogger.log(TAG,"女孩说话结束");
                         if(listener != null){
+                            UARTLogger.log(TAG,"女孩说话结束(回调)");
                             listener.playComplete();
                         }
                     }
@@ -123,6 +131,11 @@ public class AIUITextSynthesis {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+            Log.e(TAG,"proecssAIUIPacket()异常---->原因:"+e.toString());
+            if(listener != null){
+                UARTLogger.log(TAG,"女孩说话结束(回调)");
+                listener.playComplete();
+            }
         }
     }
 
