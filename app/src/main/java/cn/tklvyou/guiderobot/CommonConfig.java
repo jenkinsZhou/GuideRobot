@@ -8,5 +8,8 @@ package cn.tklvyou.guiderobot;
  * @Email: 971613168@qq.com
  */
 public class CommonConfig {
+    /**
+     * 是否开启调试模式
+     */
     public static boolean DEBUG_MODE = true;
 }

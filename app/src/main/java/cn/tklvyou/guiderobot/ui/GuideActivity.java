@@ -99,6 +99,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private RecyclerView rvLog;
     private LogAdapter logAdapter;
     private long currentLocationId;
+    private boolean testFinish = false;
     /**
      * 语音是否说完
      */
@@ -113,6 +114,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     private MotorController motorController;
     private SerialPort serialPort;
+
 
     @Override
     protected int getActivityLayoutID() {
@@ -215,7 +217,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             if (mWeakReference != null) {
                 GuideActivity activity = (GuideActivity) mWeakReference.get();
                 if (activity == null) {
-                    ToastUtils.showShort("消息为null!");
                     return;
                 }
                 switch (msg.what) {
@@ -636,6 +637,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 case RobotAction.HANDED_ROTATION_ACTION:
                     //执行身体转动
                     doBodyRotating((String) actionModel.getParams());
+//                    doRotationTest();
                     break;
                 case RobotAction.DELAY_ACTION:
                     logI("doAction", "doAction 执行延时1.5秒");
@@ -662,11 +664,10 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             switch (action) {
                 case ACTION_ROTATION_TURN_LEFT_30:
                     //身体左转30度
-                    turnLeftByAngle(slamWarePlatform,30);
+                    turnLeftByAngle(slamWarePlatform, 30);
                   /*  Pose pose = slamWarePlatform.getPose();
                     pose.getRotation();
                     rotation = new Rotation(0);
-                    ,
                     moveAction = slamWarePlatform.rotate(rotation);
                     //该方法为阻塞方法 会阻塞线程
                     moveAction.waitUntilDone();
@@ -676,13 +677,12 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     break;
                 case ACTION_ROTATION_TURN_LEFT_45:
                     //身体左转30度
-                    turnLeftByAngle(slamWarePlatform,45);
+                    turnLeftByAngle(slamWarePlatform, 45);
                     logD("doBodyRotating", "左转45度指令执行完毕");
-
                     break;
                 case ACTION_ROTATION_TURN_LEFT_90:
                     //身体左转30度
-                    turnLeftByAngle(slamWarePlatform,90);
+                    turnLeftByAngle(slamWarePlatform, 90);
                     logD("doBodyRotating", "左转90度指令执行完毕");
                     break;
                 case ACTION_ROTATION_TURN_RIGHT_30:
@@ -725,15 +725,15 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             switch (angel) {
                 case 30:
                     //左转30度
-                    yaw = -MathUtil.PI / 6;
+                    yaw = currentYaw + (MathUtil.PI / 6);
                     break;
                 case 45:
                     //左转45度
-                    yaw = -MathUtil.PI / 4;
+                    yaw = currentYaw + (MathUtil.PI / 4);
                     break;
                 case 90:
                     //左转90度
-                    yaw = -MathUtil.PI / 2;
+                    yaw = currentYaw + (MathUtil.PI / 2);
                     break;
                 default:
                     yaw = MIN_VALUE;
@@ -745,12 +745,11 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 return;
             }
             currentRotation.setYaw(yaw);
-            IMoveAction turnAction = platform.rotate(currentRotation);
+            IMoveAction turnAction = platform.rotateTo(currentRotation);
             //该方法为阻塞方法 会阻塞线程
             turnAction.waitUntilDone();
             logI(TAG, "左转结束");
-            logI(TAG, "旋转的角度值:" + yaw);
-            logD(TAG, "旋转后的currentYaw值:" + currentYaw);
+            logD(TAG, "旋转后的currentYaw值:" + yaw);
         } catch (Exception e) {
             logE(TAG, "turnLeftByAngle()异常 原因---->" + e.toString());
         }
@@ -775,15 +774,15 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             switch (angel) {
                 case 30:
                     //右转30度
-                    yaw = MathUtil.PI / 6;
+                    yaw = currentYaw + (-MathUtil.PI / 6);
                     break;
                 case 45:
                     //右转45度
-                    yaw = MathUtil.PI / 4;
+                    yaw = currentYaw + (-MathUtil.PI / 4);
                     break;
                 case 90:
                     //右转90度
-                    yaw = MathUtil.PI / 2;
+                    yaw = currentYaw + (-MathUtil.PI / 2);
                     break;
                 default:
                     yaw = MIN_VALUE;
@@ -795,16 +794,45 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 return;
             }
             currentRotation.setYaw(yaw);
-            IMoveAction turnAction = platform.rotate(currentRotation);
+            IMoveAction turnAction = platform.rotateTo(currentRotation);
             //该方法为阻塞方法 会阻塞线程
             turnAction.waitUntilDone();
             logI(TAG, "右转结束");
-            logI(TAG, "旋转的角度值:" + yaw);
-            logD(TAG, "旋转后的currentYaw值:" + currentYaw);
+            logD(TAG, "旋转后的currentYaw值:" + yaw);
         } catch (Exception e) {
             logE(TAG, "turnRightByAngle()异常 原因---->" + e.toString());
         }
     }
 
+/**
+ * 测试转身
+ */
+   /* private void doRotationTest() {
+        try {
+            testFinish = false;
+            Rotation rotation = new Rotation();
+            rotation.setYaw(MathUtil.PI*2);
+            ThreadPoolManager.getThreadPoolProxy().execute(new Runnable() {
+                @Override
+                public void run() {
+                    while (!testFinish) {
+                        try {
+                            logD(TAG, "当前机器人的yaw值" + slamWarePlatform.getPose().getYaw());
+                            delay(50);
+                        } catch (Exception e) {
+                            logE(TAG, "doRotationTest()" + e.toString());
+                            testFinish = true;
+                        }
+                    }
+                    logE(TAG, "doRotationTest()退出循环" );
+                }
+            });
+            IMoveAction turnAction = slamWarePlatform.rotate(rotation);
+            turnAction.waitUntilDone();
+            testFinish = true;
+        } catch (Exception e) {
+            testFinish = true;
+        }
+    }*/
 
 }
