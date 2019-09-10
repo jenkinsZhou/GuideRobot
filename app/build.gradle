@@ -78,7 +78,6 @@ dependencies {
     implementation 'org.greenrobot:greendao:3.2.2'
     implementation 'com.afollestad.material-dialogs:core:2.8.1'
     implementation 'com.afollestad.material-dialogs:input:2.8.1'
-
     //Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
@@ -94,5 +93,8 @@ dependencies {
     api 'com.apkfuns.log2file:log2file:1.1.0'
     //万能适配器
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.49-androidx'
-
+    //webSocket
+    implementation 'com.neovisionaries:nv-websocket-client:2.6'
+    api 'org.java-websocket:Java-WebSocket:1.4.0'
+    implementation files('libs/core-3.3.0.jar')
 }

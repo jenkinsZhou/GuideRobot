@@ -9,7 +9,11 @@ package cn.tklvyou.guiderobot.constant;
  */
 public class RequestConstant {
 
+    public static String BASE_URL = "http://robot.tklvyou.cn";
+
     public static final int REQUEST_SUCCESS  = 1;
 
     public static final int REQUEST_ERROR  = 0;
+
+    public static final String WEB_SOCKET_URL = "ws://robot.tklvyou.cn/ws/notify";
 }
