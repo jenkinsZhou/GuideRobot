@@ -18,6 +18,7 @@ import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.manager.Robot
 import cn.tklvyou.guiderobot.model.AppConfigInfo
 import cn.tklvyou.guiderobot.model.NavLocation
+import cn.tklvyou.guiderobot.widget.toast.ToastUtil
 import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -140,50 +141,13 @@ class SplashActivity : BaseActivity() {
              btnNavigation.isEnabled = true
          }
  */
-
+        initClick()
     }
 
 
     override fun onInitSuccess() {
         super.onInitSuccess()
-        ToastUtils.showShort("语音模块初始化成功")
-        btnNavigation.setOnClickListener {
-            showDialog()
-            btnNavigation.isEnabled = false
-            val ipStr = editTextIp.text.toString().trim()
-            if (ipStr.isEmpty()) {
-                ToastUtils.showShort("请输入机器人IP地址")
-            } else {
-                Thread(Runnable {
-                    try {
-                        val robotPlatform = DeviceManager.connect(ipStr, 1445)
-                        if (robotPlatform == null) {
-                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
-                        } else {
-                            Robot.getInstance().slamWarePlatform = robotPlatform
-                            (application as MyApplication).setRobotPlatform(robotPlatform)
-                            ToastUtils.showShort("连接成功")
-//                            val intent = Intent(this, GuideActivity::class.java)
-                            val intent = Intent(this, PayActivity::class.java)
-                            startActivity(intent)
-                        }
-                        hideDialog()
-                        finish()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        if (e is ConnectionTimeOutException) {
-                            ToastUtils.showShort("连接超时，请检查网络")
-                        } else {
-                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
-                        }
-                        hideDialog()
-                    }
-                }).start()
-
-            }
-            btnNavigation.isEnabled = true
-        }
-
+        initClick()
 //        btnNavigation.setOnClickListener {
 //            val intent = Intent(this, MainActivity::class.java)
 //            startActivity(intent)
@@ -262,9 +226,54 @@ class SplashActivity : BaseActivity() {
 
 
     private fun loadAppConfig(config: AppConfigInfo) {
-        TourCooLogUtil.i(tag,config)
-      AppConfig.isDebugMode = config.isIs_debug
+        TourCooLogUtil.i(tag, config)
+        AppConfig.isDebugMode = config.isIs_debug
         AppConfig.payAmont = config.total_fee
         AppConfig.needPay = config.isIs_charge
+    }
+
+
+    private fun initClick() {
+        btnNavigation.setOnClickListener {
+            showDialog()
+            btnNavigation.isEnabled = false
+            val ipStr = editTextIp.text.toString().trim()
+            if (ipStr.isEmpty()) {
+                ToastUtils.showShort("请输入机器人IP地址")
+            } else {
+                Thread(Runnable {
+                    try {
+                        val robotPlatform = DeviceManager.connect(ipStr, 1445)
+                        if (robotPlatform == null) {
+                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                        } else {
+                            Robot.getInstance().slamWarePlatform = robotPlatform
+                            (application as MyApplication).setRobotPlatform(robotPlatform)
+                            ToastUtils.showShort("连接成功")
+//                            val intent = Intent(this, GuideActivity::class.java)
+                            if (AppConfig.needPay) {
+                                val intent = Intent(this, PayActivity::class.java)
+                                startActivity(intent)
+                            } else {
+                                val intent = Intent(this, GuideActivity::class.java)
+                                startActivity(intent)
+                            }
+                        }
+                        hideDialog()
+                        finish()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        if (e is ConnectionTimeOutException) {
+                            ToastUtils.showShort("连接超时，请检查网络")
+                        } else {
+                            ToastUtils.showShort("连接失败，请输入正确的IP地址")
+                        }
+                        hideDialog()
+                    }
+                }).start()
+
+            }
+            btnNavigation.isEnabled = true
+        }
     }
 }

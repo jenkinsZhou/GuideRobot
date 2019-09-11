@@ -2,6 +2,8 @@ package cn.tklvyou.guiderobot.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -40,6 +42,7 @@ import cn.tklvyou.guiderobot.api.RxSchedulers;
 import cn.tklvyou.guiderobot.base.BaseActivity;
 import cn.tklvyou.guiderobot.base.BaseResult;
 import cn.tklvyou.guiderobot.base.MyApplication;
+import cn.tklvyou.guiderobot.common.AppConfig;
 import cn.tklvyou.guiderobot.constant.HomeConstant;
 import cn.tklvyou.guiderobot.log.TourCooLogUtil;
 import cn.tklvyou.guiderobot.log.widget.config.LogLevel;
@@ -85,6 +88,7 @@ import static java.lang.Integer.MIN_VALUE;
  * @Email: 971613168@qq.com
  */
 public class GuideActivity extends BaseActivity implements View.OnClickListener {
+    private Context mContext;
     private static final long END = 0L;
     private static final long ONE_SECOND = 1000L;
     public static final String TAG = "GuideActivity";
@@ -99,7 +103,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private RecyclerView rvLog;
     private LogAdapter logAdapter;
     private long currentLocationId;
-    private boolean testFinish = false;
     /**
      * 语音是否说完
      */
@@ -123,6 +126,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     @Override
     protected void initView() {
+        mContext = GuideActivity.this;
         mHandler = new MainHandler(this);
         initLog();
         slamWarePlatform = Robot.getInstance().getSlamWarePlatform();
@@ -272,6 +276,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             isTip = true;
             speckTextSynthesis("讲解点全部执行完毕!", true);
             closeLoading();
+            doFinishByCondition();
             return;
         }
         setViewVisible(btnStartNav, false);
@@ -366,23 +371,23 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             showLoadingDialog("正在模拟行走...5秒后关闭弹窗");
             delay(ONE_SECOND * 5);
             closeLoadingDialog();
-          /*  MoveOption moveOption = new MoveOption();
+            MoveOption moveOption = new MoveOption();
             //机器人移动的时候精确到点
             moveOption.setPrecise(true);
             moveOption.setMilestone(true);
             Pose currentPose = slamWarePlatform.getPose();
-          *//*  //先获取当前位置信息
+            //先获取当前位置信息
             //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
             int segmentId = navLocation.getId().intValue();
             Line line = new Line(segmentId, currentPose.getX(), currentPose.getY(), navLocation.getX(), navLocation.getY());
             TourCooLogUtil.i("虚拟线路", line);
             //添加虚拟路径
-            slamWarePlatform.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line);*//*
+            slamWarePlatform.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line);
             Location location = new Location(navLocation.getX(), navLocation.getY(), navLocation.getZ());
             //todo 后面传旋转角度
             logD(TAG, "当前的位置信息:X=" + currentPose.getX() + "Y=" + currentPose.getY());
             logI(TAG, "要前往的位置信息:X=" + navLocation.getX() + "Y=" + navLocation.getY());
-            action = slamWarePlatform.moveTo(location, moveOption, 0);
+            IMoveAction action = slamWarePlatform.moveTo(location, moveOption, 0);
             ActionStatus status = action.waitUntilDone();
             if (status == ActionStatus.FINISHED) {
                 showToast("本次行走结束");
@@ -392,7 +397,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 isTip = true;
                 speckTextSynthesis("小哥哥小姐姐们，请不要挡住我的路好嘛，谢谢！", false);
                 goToTheDestination(navLocation);
-            }*/
+            }
             logI(TAG, "本次行走结束(模拟)");
         } catch (Exception e) {
             showToast("导航异常,异常原因--->" + e.toString());
@@ -804,9 +809,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         }
     }
 
-/**
- * 测试转身
- */
+    /**
+     * 测试转身
+     */
    /* private void doRotationTest() {
         try {
             testFinish = false;
@@ -834,5 +839,20 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             testFinish = true;
         }
     }*/
+    private void skipHome() {
+        Intent intent = new Intent();
+        intent.setClass(mContext, PayActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
+
+    private void doFinishByCondition() {
+        if (AppConfig.needPay) {
+            skipHome();
+        } else {
+            setViewGone(btnStartNav, true);
+            GlideManager.loadImg(R.drawable.default_bg, ivShow);
+        }
+    }
 }

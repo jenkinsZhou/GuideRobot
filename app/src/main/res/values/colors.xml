@@ -25,4 +25,9 @@
 
     <color name="gray666666">#666666</color>
 
+    <color name="colorRadiusDefaultRipple">#c8cccccc</color>
+
+    <!--Glide加载图片默认占位图背景色-->
+    <color name="colorPlaceholder">#CCCCCC</color>
+
 </resources>

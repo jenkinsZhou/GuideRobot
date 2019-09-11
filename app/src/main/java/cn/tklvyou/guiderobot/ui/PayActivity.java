@@ -2,10 +2,14 @@ package cn.tklvyou.guiderobot.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,15 +27,18 @@ import cn.tklvyou.guiderobot.api.RxSchedulers;
 import cn.tklvyou.guiderobot.base.BaseActivity;
 import cn.tklvyou.guiderobot.common.AppConfig;
 import cn.tklvyou.guiderobot.log.TourCooLogUtil;
+import cn.tklvyou.guiderobot.manager.GlideManager;
 import cn.tklvyou.guiderobot.model.LocationModel;
 import cn.tklvyou.guiderobot.model.Order;
 import cn.tklvyou.guiderobot.model.OrderInfo;
 import cn.tklvyou.guiderobot.qrcode.QRCodeUtil;
+import cn.tklvyou.guiderobot.threadpool.ThreadPoolManager;
 import cn.tklvyou.guiderobot.utils.SizeUtil;
 import cn.tklvyou.guiderobot.websocket.SimpleListener;
 import cn.tklvyou.guiderobot.websocket.SocketListener;
 import cn.tklvyou.guiderobot.websocket.WebSocketHandler;
 import cn.tklvyou.guiderobot.websocket.response.ErrorResponse;
+import cn.tklvyou.guiderobot.widget.toast.ToastUtil;
 import cn.tklvyou.guiderobot_new.R;
 
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR;
@@ -51,6 +58,7 @@ public class PayActivity extends BaseActivity {
     private ImageView ivPayTypeWeChat;
     private Context mContext;
     public static final String TAG = "PayActivityTag";
+    private Handler handler = new Handler();
 
     @Override
     protected int getActivityLayoutID() {
@@ -64,33 +72,34 @@ public class PayActivity extends BaseActivity {
         ivPayTypeAli = findViewById(R.id.ivPayTypeAli);
         ivPayTypeWeChat = findViewById(R.id.ivPayTypeWeChat);
         WebSocketHandler.getDefault().addListener(socketListener);
-        requestOrderInfo(true);
+        requestOrderInfo(true, true);
     }
 
 
     /**
      * 生成二维码并显示
      */
-    private Bitmap generateQrCodeAndDisplay(String content, boolean isAddLogo, Drawable logo, ImageView imageView) {
-        int width = SizeUtil.dp2px(150);
-        int height = SizeUtil.dp2px(150);
+    private void generateQrCodeAndDisplay(String content, boolean isAddLogo, Drawable logo, ImageView imageView) {
+        int width = SizeUtil.dp2px(200);
+        int height = SizeUtil.dp2px(200);
         if (TextUtils.isEmpty(content)) {
-            return null;
+            return;
         }
-        String error_correction_level = getResources().getStringArray(R.array.spinarr_error_correction)[3];
-        String margin = getResources().getStringArray(R.array.spinarr_margin)[0];
+        String error_correction_level = getResources().getStringArray(R.array.spinarr_error_correction)[2];
+        String margin = getResources().getStringArray(R.array.spinarr_margin)[1];
         Bitmap bitmap;
-        if (isAddLogo) {
-            Bitmap logoBitmap = ImageUtils.drawable2Bitmap(logo);
-            bitmap = QRCodeUtil.createQRCodeBitmap(content, width, height, "UTF-8",
-                    error_correction_level, margin, Color.BLACK, Color.WHITE, logoBitmap, 0.2F, null);
-            imageView.setImageBitmap(bitmap);
-        } else {
-            bitmap = QRCodeUtil.createQRCodeBitmap(content, width, height, "UTF-8",
-                    error_correction_level, margin, Color.BLACK, Color.WHITE, null, 0.2F, null);
-            imageView.setImageBitmap(bitmap);
+        Bitmap logoBitmap = ImageUtils.drawable2Bitmap(logo);
+        bitmap = QRCodeUtil.createQRCodeBitmap(content, width, height, "UTF-8",
+                error_correction_level, margin, Color.BLACK, Color.WHITE, isAddLogo ? logoBitmap : null, 0.2F, null);
+        if (bitmap == null) {
+            return;
         }
-        return bitmap;
+        imageView.setImageBitmap(bitmap);
+        //将原始图片缩放成ImageView控件的高宽
+        Bitmap newBitmap = zoomBitmap(bitmap,
+                imageView.getWidth(), imageView.getHeight());
+        imageView.setImageBitmap(newBitmap);
+
     }
 
 
@@ -103,6 +112,8 @@ public class PayActivity extends BaseActivity {
         if (logoPayWeChat != null) {
             generateQrCodeAndDisplay(orderInfo.getWechat(), true, logoPayWeChat, ivPayTypeWeChat);
         }
+       /* GlideManager.loadImg(orderInfo.getAlipay(),ivPayTypeAli);
+        GlideManager.loadImg(orderInfo.getWechat(),ivPayTypeWeChat);*/
         tvPayAmount.setText(AppConfig.payAmont);
     }
 
@@ -136,8 +147,11 @@ public class PayActivity extends BaseActivity {
         @Override
         public <T> void onMessage(String message, T data) {
             TourCooLogUtil.i(TAG, "onMessage() 数据接受:message(字符串) = " + message);
-            TourCooLogUtil.i("接收到的socket消息",  message);
-            TourCooLogUtil.i("接收到的socket消息数据",  data);
+            TourCooLogUtil.i("接收到的socket消息", message);
+            TourCooLogUtil.i("接收到的socket消息数据", data);
+            if (PAY_SUCCESS.equals(message)) {
+                requestOrderInfo(false, false);
+            }
         }
 
         @Override
@@ -151,7 +165,7 @@ public class PayActivity extends BaseActivity {
      * 请求订单信息
      */
     @SuppressLint("CheckResult")
-    private void requestOrderInfo(boolean showLoading) {
+    private void requestOrderInfo(boolean showLoading, boolean firstLoad) {
         if (showLoading) {
             showLoading("正在获取支付数据");
         }
@@ -165,22 +179,24 @@ public class PayActivity extends BaseActivity {
                             ToastUtils.showShort(result.getErrmsg());
                             break;
                         case REQUEST_SUCCESS:
-                            loadOrderInfoAndSendMsg(result.getData());
+                            loadOrderInfoAndSendMsg(result.getData(), firstLoad);
                             break;
                         default:
                             break;
                     }
                 }, throwable -> {
                     closeLoading();
+                    TourCooLogUtil.e(TAG, "异常:" + throwable.toString());
                     ToastUtils.showShort("请求失败:" + throwable.toString());
                 });
     }
 
     /**
      * 获取订单信息并发送socket给后台
+     *
      * @param orderInfo
      */
-    private void loadOrderInfoAndSendMsg(OrderInfo orderInfo) {
+    private void loadOrderInfoAndSendMsg(OrderInfo orderInfo, boolean firstLoad) {
         if (orderInfo == null) {
             return;
         }
@@ -189,9 +205,41 @@ public class PayActivity extends BaseActivity {
         order.setOrder_id(orderInfo.getId());
         Gson gson = new Gson();
         String orderMessage = gson.toJson(order);
-        TourCooLogUtil.i(TAG,orderInfo);
+        TourCooLogUtil.i(TAG, orderInfo);
         WebSocketHandler.getDefault().send(orderMessage);
-        TourCooLogUtil.i(TAG,orderMessage);
+        TourCooLogUtil.i(TAG, orderMessage);
+        if (firstLoad) {
+            return;
+        }
+        ToastUtil.showSuccess("支付成功");
+        skipGuideActivityDelay();
     }
 
+    private void skipGuideActivityDelay() {
+        handler.postDelayed(() -> {
+            Intent intent = new Intent();
+            intent.setClass(mContext, GuideActivity.class);
+            startActivity(intent);
+        }, 2000);
+    }
+
+
+    /**
+     * 图片缩放
+     *
+     * @param bitmap 对象
+     * @param w      要缩放的宽度
+     * @param h      要缩放的高度
+     * @return newBmp 新 Bitmap对象
+     */
+    public static Bitmap zoomBitmap(Bitmap bitmap, int w, int h) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Matrix matrix = new Matrix();
+        float scaleWidth = ((float) w / width);
+        float scaleHeight = ((float) h / height);
+        matrix.postScale(scaleWidth, scaleHeight);
+        return Bitmap.createBitmap(bitmap, 0, 0, width, height,
+                matrix, true);
+    }
 }

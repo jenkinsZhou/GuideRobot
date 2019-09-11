@@ -19,6 +19,7 @@ import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis;
 import cn.tklvyou.guiderobot.manager.GlideManager;
 import cn.tklvyou.guiderobot.widget.LoadingProgressDialog;
 import cn.tklvyou.guiderobot.widget.dialog.FrameLoadingDialog;
+import cn.tklvyou.guiderobot.widget.toast.ToastUtil;
 import cn.tklvyou.guiderobot_new.R;
 
 /**
@@ -26,7 +27,10 @@ import cn.tklvyou.guiderobot_new.R;
  */
 
 public abstract class BaseActivity extends AppCompatActivity implements AIUITextSynthesis.ITTSListener {
-
+    /**
+     * 语音模块是否可用
+     */
+    protected boolean voiceModuleEnable = false;
     private MyApplication application;
     private AIUITextSynthesis aiuiTextSynthesis;
     protected LoadingProgressDialog dialog;
@@ -72,6 +76,8 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
     @Override
     public void onInitSuccess() {
+        ToastUtil.showSuccess("语音模块初始化成功");
+        voiceModuleEnable = true;
     }
 
     @Override
@@ -90,12 +96,17 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
 
     protected void showLoading(String msg) {
-        if (loadingDialog != null && !loadingDialog.isShowing()) {
-            if (!TextUtils.isEmpty(msg)) {
-                loadingDialog.setLoadingText(msg);
+        try {
+            if (loadingDialog != null && !loadingDialog.isShowing()) {
+                if (!TextUtils.isEmpty(msg)) {
+                    loadingDialog.setLoadingText(msg);
+                }
+                loadingDialog.show();
             }
-            loadingDialog.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
 
@@ -113,6 +124,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
             view.setVisibility(View.INVISIBLE);
         }
     }
+
     protected void setViewGone(View view, boolean visible) {
         if (visible) {
             view.setVisibility(View.VISIBLE);

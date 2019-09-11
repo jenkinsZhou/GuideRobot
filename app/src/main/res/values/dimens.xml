@@ -19,7 +19,8 @@
     <!-- 选项文字大小 -->
     <dimen name="pickerview_textsize">@dimen/sp_20</dimen>
 
-
+    <!--glide加载圆角图片占位图圆角弧度-->
+    <dimen name="dp_placeholder_radius">@dimen/dp_6</dimen>
 
 
 

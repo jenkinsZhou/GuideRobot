@@ -15,6 +15,8 @@ import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.utils.MotorController
 import cn.tklvyou.guiderobot.websocket.WebSocketHandler
 import cn.tklvyou.guiderobot.websocket.WebSocketSetting
+import cn.tklvyou.guiderobot.widget.toast.ToastImpl
+import cn.tklvyou.guiderobot.widget.toast.UiManager
 import cn.tklvyou.serialportlibrary.BuildConfig
 
 import cn.tklvyou.serialportlibrary.SerialPort
@@ -46,9 +48,10 @@ class MyApplication : Application() {
         //异常处理初始化
         CrashManager.init(this)
         initGreenDao()
+        UiManager.init(this)
+        UiManager.getInstance().toastControl = ToastImpl()
         //COM1串口
         aiui = AIUITextSynthesis(this)
-
         //COM2串口
         serialPort = SerialPort.getInstance("/dev/ttyS1", 9600)
         serialPort.installAllConfigs()

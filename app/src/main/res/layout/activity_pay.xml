@@ -7,7 +7,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         android:src="@mipmap/icon_bg_2" />
 
 
@@ -101,9 +101,12 @@
             >
 
             <ImageView
+                android:background="@color/transparent"
                 android:id="@+id/ivPayTypeAli"
-                android:layout_width="@dimen/dp_150"
-                android:layout_height="@dimen/dp_150"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/dp_200"
+                android:minWidth="@dimen/dp_200"
                 android:scaleType="fitXY"
                 android:src="@mipmap/img_alipay" />
 
@@ -115,8 +118,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="@dimen/dp_12"
-                    android:layout_height="@dimen/dp_12"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="@dimen/dp_5"
                     android:src="@mipmap/img_alipay" />
@@ -126,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:text="支付宝支付"
-                    android:textSize="9sp" />
+                    android:textSize="@dimen/sp_12" />
 
 
             </LinearLayout>
@@ -143,9 +146,12 @@
             >
 
             <ImageView
+                android:background="@color/transparent"
                 android:id="@+id/ivPayTypeWeChat"
-                android:layout_width="@dimen/dp_150"
-                android:layout_height="@dimen/dp_150"
+                android:minHeight="@dimen/dp_200"
+                android:minWidth="@dimen/dp_200"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/dp_10"
                 android:scaleType="fitXY"
                 android:src="@mipmap/img_wechat_pay" />
@@ -158,8 +164,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="@dimen/dp_12"
-                    android:layout_height="@dimen/dp_12"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="@dimen/dp_5"
                     android:src="@mipmap/img_wechat_pay" />
@@ -169,7 +175,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:text="微信支付"
-                    android:textSize="9sp" />
+                    android:textSize="@dimen/sp_12" />
 
 
             </LinearLayout>
