@@ -4,12 +4,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
+import android.util.SparseArray;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +23,7 @@ import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
+import com.mylhyl.circledialog.CircleDialog;
 import com.slamtec.slamware.AbstractSlamwarePlatform;
 import com.slamtec.slamware.action.ActionStatus;
 import com.slamtec.slamware.action.IAction;
@@ -31,11 +37,14 @@ import com.slamtec.slamware.robot.Pose;
 import com.slamtec.slamware.robot.Rotation;
 import com.slamtec.slamware.sdp.CompositeMapHelper;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.tklvyou.guiderobot.RobotAction;
+import cn.tklvyou.guiderobot.adapter.CheckedAdapter;
 import cn.tklvyou.guiderobot.adapter.LogAdapter;
 import cn.tklvyou.guiderobot.api.RetrofitHelper;
 import cn.tklvyou.guiderobot.api.RxSchedulers;
@@ -56,6 +65,7 @@ import cn.tklvyou.guiderobot.model.NavLocation;
 import cn.tklvyou.guiderobot.threadpool.ThreadPoolManager;
 import cn.tklvyou.guiderobot.utils.MathUtil;
 import cn.tklvyou.guiderobot.utils.MotorController;
+import cn.tklvyou.guiderobot.widget.toast.ToastUtil;
 import cn.tklvyou.guiderobot_new.R;
 import cn.tklvyou.serialportlibrary.SerialPort;
 
@@ -88,6 +98,8 @@ import static java.lang.Integer.MIN_VALUE;
  * @Email: 971613168@qq.com
  */
 public class GuideActivity extends BaseActivity implements View.OnClickListener {
+    private static final String startTip = "位置id:";
+    private static final String endTip = "，名称:";
     private Context mContext;
     private static final long END = 0L;
     private static final long ONE_SECOND = 1000L;
@@ -117,6 +129,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     private MotorController motorController;
     private SerialPort serialPort;
+    private ArrayList<Long> idList = new ArrayList<>();
 
 
     @Override
@@ -327,8 +340,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 if (mCurrentPositionInfo == null) {
                     ToastUtils.showShort("未获取到位置信息");
                     logE(TAG, "未获取到位置信息");
-                    logD(TAG, "延迟10秒后直接请求下一个讲解点信息");
-                    delay(ONE_SECOND * 10);
+                    delay(ONE_SECOND);
                     logI(TAG, "即将请求下一个讲解点信息");
                     sendEmptyMsg(MSG_START);
                     return;
@@ -337,10 +349,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 loadImage(locationModel.getThumb(), ivShow);
                 logI(TAG, "等待2秒后开始说话");
                 delay(ONE_SECOND * 2);
-                speckTextSynthesis("5秒后开始模拟寻路", false);
-                delay(ONE_SECOND * 5);
-                logI(TAG, "等待5秒后开始前往当前目的地");
-                delay(ONE_SECOND * 5);
+                logI(TAG, "2秒后开始前往当前目的地");
+                delay(ONE_SECOND * 2);
                 logI(TAG, "即将执行goToTheDestination()");
                 goToTheDestination(mCurrentPositionInfo);
                 logD(TAG, "已经到达目的地 2秒后开始执行动作指令...");
@@ -366,11 +376,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             return;
         }
         try {
-            logI(TAG, "准备正在行走(模拟)...2秒钟后显示弹窗");
-            delay(ONE_SECOND * 2);
-            showLoadingDialog("正在模拟行走...5秒后关闭弹窗");
-            delay(ONE_SECOND * 5);
-            closeLoadingDialog();
+            logI(TAG, "准备行走");
             MoveOption moveOption = new MoveOption();
             //机器人移动的时候精确到点
             moveOption.setPrecise(true);
@@ -855,4 +861,140 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             GlideManager.loadImg(R.drawable.default_bg, ivShow);
         }
     }
+
+
+    private void showDeleteDialog() {
+        List<NavLocation> navLocationList = daoSession.getNavLocationDao().queryBuilder().list();
+        if (navLocationList == null || navLocationList.isEmpty()) {
+            ToastUtil.showWarning("数据库中已经没有位置信息");
+            return;
+        }
+        final String[] objects = new String[navLocationList.size()];
+        NavLocation location;
+        for (int i = 0; i < navLocationList.size(); i++) {
+            location = navLocationList.get(i);
+            if (location == null) {
+                continue;
+            }
+            objects[i] = spliceData(location);
+        }
+        final CheckedAdapter checkedAdapter = new CheckedAdapter(this, objects);
+
+        new CircleDialog.Builder()
+                .configDialog(params -> params.backgroundColorPress = Color.CYAN)
+                .setTitle("带复选的ListView")
+                .setSubTitle("可多选")
+                .setItems(checkedAdapter, (parent, view12, position12, id) -> {
+                            checkedAdapter.toggle(position12, objects[position12]);
+                            return false;
+                        }
+                )
+                .setGravity(Gravity.CENTER)
+                .setPositive("确定", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        idList = parseSparseArrayToIdList(checkedAdapter.getSaveChecked());
+                    }
+                }).show(getSupportFragmentManager());
+    }
+
+
+    private void deleteLocationDataFromSq(List<Long> idList) {
+        if (idList == null || idList.size() == 0) {
+            ToastUtil.showWarning("没有数据");
+            return;
+        }
+        long id;
+        for (int i = 0; i < idList.size(); i++) {
+            id = idList.get(i);
+            if (id < 0) {
+                continue;
+            }
+            NavLocation navLocation = daoSession.getNavLocationDao().load(id);
+            if (navLocation == null) {
+                continue;
+            }
+            deleteNavLocation(navLocation);
+            TourCooLogUtil.d("数据删除成功：" + navLocation.getId());
+        }
+    }
+
+    private void deleteNavLocation(NavLocation navLocation) {
+        if (navLocation == null) {
+            return;
+        }
+        daoSession.getNavLocationDao().delete(navLocation);
+    }
+
+    private String spliceData(NavLocation navLocation) {
+        if (navLocation == null) {
+            return "空";
+        }
+        return startTip + navLocation.getId() + endTip + navLocation.getName();
+    }
+
+
+    private long getIdBySpliteData(String locationDesc) {
+        if (TextUtils.isEmpty(locationDesc)) {
+            return -1;
+        }
+        int startIndex = locationDesc.indexOf(startTip);
+        int endIndex = locationDesc.indexOf(endTip);
+        if (startIndex < 0 || endIndex < 0 || startIndex > endIndex) {
+            return -1;
+        }
+        try {
+            String id = locationDesc.substring(startIndex + startTip.length(), endIndex);
+            TourCooLogUtil.i("位置在数据库中的对应id:" + id);
+            return Integer.parseInt(id);
+        } catch (Exception e) {
+            ToastUtil.showFailed("异常了" + e.toString());
+            return -1;
+        }
+    }
+
+
+    private ArrayList<Long> parseSparseArrayToIdList(SparseArray<String> sparseArray) {
+        int size = sparseArray.size();
+        ArrayList<Long> idList = new ArrayList<>();
+        String data;
+        long id;
+        for (int i = 0; i < size; i++) {
+            data = sparseArray.valueAt(i);
+            id = getIdBySpliteData(data);
+            if (id < 0) {
+                continue;
+            }
+            idList.add(id);
+        }
+        return idList;
+    }
+
+
+    private void requestDeletePosition(List<Long> idList){
+        String ids = StringUtils.join(idList,",");
+        TourCooLogUtil.d("要删除的位置信息："+ids);
+        showLoading("正在删除位置信息...");
+        RetrofitHelper.getInstance().getServer()
+                .requestDeletePosition(ids)
+                .compose(RxSchedulers.applySchedulers())
+                .subscribe(result -> {
+                    closeLoading();
+                    switch (result.getStatus()) {
+                        case REQUEST_ERROR:
+                            ToastUtils.showShort(result.getErrmsg());
+                            break;
+                        case REQUEST_SUCCESS:
+                            deleteLocationDataFromSq(idList);
+                            break;
+                        default:
+                            break;
+                    }
+                }, throwable -> {
+                    closeLoading();
+                    TourCooLogUtil.e(TAG, "异常:" + throwable.toString());
+                    ToastUtils.showShort("请求失败:" + throwable.toString());
+                });
+    }
+
 }

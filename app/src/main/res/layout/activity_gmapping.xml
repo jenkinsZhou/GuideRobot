@@ -48,6 +48,14 @@
                 android:text="保存位置"
                 android:textSize="20sp" />
 
+            <TextView
+                android:id="@+id/tvClearPosition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:drawableTop="@drawable/img_clear"
+                android:text="清除位置"
+                android:textSize="20sp" />
             <!--<TextView-->
             <!--android:id="@+id/saveOriginPoint"-->
             <!--android:layout_width="wrap_content"-->

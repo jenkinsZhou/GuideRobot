@@ -12,6 +12,7 @@ android {
         applicationId "cn.tklvyou.guiderobot_new"
         minSdkVersion 19
         targetSdkVersion 28
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -97,4 +98,7 @@ dependencies {
     implementation 'com.neovisionaries:nv-websocket-client:2.6'
     api 'org.java-websocket:Java-WebSocket:1.4.0'
     implementation files('libs/core-3.3.0.jar')
+    implementation 'com.mylhyl:circleDialog:5.0.3'
+    implementation files('libs/commons-lang-2.6.jar')
+    implementation 'com.android.support:multidex:1.0.3'
 }

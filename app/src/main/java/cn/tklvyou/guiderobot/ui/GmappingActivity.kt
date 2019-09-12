@@ -2,22 +2,32 @@ package cn.tklvyou.guiderobot.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.os.Handler
 import android.os.Message
+import android.text.TextUtils
+import android.util.SparseArray
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
+import android.widget.Toast
+import cn.tklvyou.guiderobot.adapter.CheckedAdapter
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
+import cn.tklvyou.guiderobot.base.BaseResult
 import cn.tklvyou.guiderobot.base.MyApplication
+import cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR
+import cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_SUCCESS
 import cn.tklvyou.guiderobot.utils.MathUtil
 import cn.tklvyou.guiderobot.log.TourCooLogUtil
 import cn.tklvyou.guiderobot.manager.Robot
 import cn.tklvyou.guiderobot.model.DaoSession
 import cn.tklvyou.guiderobot.model.NavLocation
 import cn.tklvyou.guiderobot.widget.RockerView
+import cn.tklvyou.guiderobot.widget.toast.ToastUtil
 import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -27,6 +37,7 @@ import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SPUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.google.gson.Gson
+import com.mylhyl.circledialog.CircleDialog
 import com.slamtec.slamware.AbstractSlamwarePlatform
 import com.slamtec.slamware.action.IMoveAction
 import com.slamtec.slamware.exceptions.*
@@ -37,10 +48,15 @@ import com.slamtec.slamware.robot.*
 import java.util.*
 import com.slamtec.slamware.sdp.CompositeMapHelper
 import kotlinx.android.synthetic.main.activity_splash.*
+import org.apache.commons.lang.StringUtils
+import kotlin.collections.ArrayList
 
-
+@SuppressLint("CheckResult")
 class GmappingActivity : BaseActivity(), View.OnClickListener {
     private val TAG = "GmappingActivity"
+    private val startTip = "位置id:"
+    private val endTip = "，名称:"
+    private var idList = java.util.ArrayList<Long>()
     override fun getActivityLayoutID(): Int {
         return R.layout.activity_gmapping
     }
@@ -98,7 +114,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         tvTest0.setOnClickListener(this)
         btnSafeExit.setOnClickListener(this)
         btnForceExit.setOnClickListener(this)
-
+        tvClearPosition.setOnClickListener(this)
         val path = "/sdcard/robot/map.stcm"
 
         val compositeMapHelper = CompositeMapHelper()
@@ -263,9 +279,9 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                                 navLocation.x = robotPlatform!!.pose.x
                                 navLocation.y = robotPlatform!!.pose.y
                                 navLocation.z = robotPlatform!!.pose.z
-                                LogUtils.i(TAG,"X值="+robotPlatform!!.pose.x)
-                                LogUtils.d(TAG,"Y值="+robotPlatform!!.pose.y)
-                                LogUtils.e(TAG,"Z值="+robotPlatform!!.pose.z)
+                                LogUtils.i(TAG, "X值=" + robotPlatform!!.pose.x)
+                                LogUtils.d(TAG, "Y值=" + robotPlatform!!.pose.y)
+                                LogUtils.e(TAG, "Z值=" + robotPlatform!!.pose.z)
                                 navLocation.rotation = robotPlatform!!.pose.yaw
                                 TourCooLogUtil.i("线路", navLocation)
                                 if (daoSession!!.navLocationDao.load(navLocation.id) != null) {
@@ -301,7 +317,6 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                             }
 
                         }
-
                     }
 
                     R.id.btnForceExit -> {
@@ -342,30 +357,30 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     }
 
                     R.id.tvTest -> {
-                      var  currentPose = robotPlatform!!.pose
+                        var currentPose = robotPlatform!!.pose
                         var rotation = currentPose?.rotation
                         var yaw = rotation?.yaw
-                         var newRotation = Rotation()
-                        newRotation.yaw  = 20.0f
+                        var newRotation = Rotation()
+                        newRotation.yaw = 20.0f
                         currentPose.rotation = newRotation
                         robotPlatform!!.pose = currentPose
-                        val rotation1 = Rotation(MathUtil.PI*2)
+                        val rotation1 = Rotation(MathUtil.PI * 2)
                         val action = robotPlatform!!.rotate(rotation1)
                         LogUtils.d(TAG, "当前的yaw:${action.actionName}")
                         LogUtils.i(TAG, "当前的yaw:$yaw")
                     }
-                    R.id.tvTest0 ->{
-                   /*     var  currentPose = robotPlatform!!.pose
-                        var rotation = currentPose?.rotation
-                        var yaw = rotation?.yaw
-                        LogUtils.d(TAG, "当前的yaw:$yaw")
-                        var newRotation = Rotation()
-                        newRotation.yaw  = 1f
-                        currentPose.rotation = newRotation
-                        robotPlatform!!.pose = currentPose
-                        val rotation1 = Rotation(-MathUtil.PI*2)
-                        val action = robotPlatform!!.rotate(rotation1)
-                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")*/
+                    R.id.tvTest0 -> {
+                        /*     var  currentPose = robotPlatform!!.pose
+                             var rotation = currentPose?.rotation
+                             var yaw = rotation?.yaw
+                             LogUtils.d(TAG, "当前的yaw:$yaw")
+                             var newRotation = Rotation()
+                             newRotation.yaw  = 1f
+                             currentPose.rotation = newRotation
+                             robotPlatform!!.pose = currentPose
+                             val rotation1 = Rotation(-MathUtil.PI*2)
+                             val action = robotPlatform!!.rotate(rotation1)
+                             LogUtils.d(TAG, "当前的yaw:${action.actionName}")*/
                         skipMainActivity()
                     }
 //                    R.id.saveOriginPoint -> {
@@ -409,6 +424,9 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
 //
 //                    }
 
+                    R.id.tvClearPosition -> {
+                        showDeleteDialog()
+                    }
                     else -> {
 
                     }
@@ -495,7 +513,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    private fun skipMainActivity(){
+    private fun skipMainActivity() {
         showDialog()
         btnNavigation.isEnabled = false
         val ipStr = editTextIp.text.toString().trim()
@@ -511,7 +529,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         Robot.getInstance().slamWarePlatform = robotPlatform
                         (application as MyApplication).setRobotPlatform(robotPlatform)
                         ToastUtils.showShort("连接成功")
-                            val intent = Intent(this, MainActivity::class.java)
+                        val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
                     }
                     hideDialog()
@@ -529,6 +547,131 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
 
         }
         btnNavigation.isEnabled = true
+    }
+
+
+    private fun showDeleteDialog() {
+        val navLocationList = daoSession!!.navLocationDao.queryBuilder().list()
+        if (navLocationList == null || navLocationList.isEmpty()) {
+            ToastUtil.showWarning("数据库中已经没有位置信息")
+            return
+        }
+        val objects = arrayOfNulls<String>(navLocationList.size)
+        var location: NavLocation?
+        for (i in navLocationList.indices) {
+            location = navLocationList[i]
+            if (location == null) {
+                continue
+            }
+            objects[i] = spliceData(location)
+        }
+        val checkedAdapter = CheckedAdapter(this, objects)
+
+        CircleDialog.Builder()
+                .configDialog { params -> params.backgroundColorPress = Color.CYAN }
+                .setTitle("选择要删除的位置点")
+                .setSubTitle("可多选")
+                .setItems(checkedAdapter
+                ) { parent, view12, position12, id ->
+                    checkedAdapter.toggle(position12, objects[position12])
+                    false
+                }
+                .setGravity(Gravity.CENTER)
+                .setPositive("确定") {
+                    idList = parseSparseArrayToIdList(checkedAdapter.saveChecked)
+                    requestDeletePosition(idList)
+                }.show(supportFragmentManager)
+    }
+
+
+    private fun deleteLocationDataFromSq(idList: List<Long>?) {
+        if (idList == null || idList.isEmpty()) {
+            ToastUtil.showWarning("没有数据")
+            return
+        }
+        var id: Long
+        for (i in idList.indices) {
+            id = idList[i]
+            if (id < 0) {
+                continue
+            }
+            val navLocation = daoSession!!.navLocationDao.load(id) ?: continue
+            deleteNavLocation(navLocation)
+            TourCooLogUtil.d("数据删除成功：" + navLocation.id!!)
+        }
+    }
+
+    private fun deleteNavLocation(navLocation: NavLocation?) {
+        if (navLocation == null) {
+            return
+        }
+        daoSession!!.navLocationDao.delete(navLocation)
+    }
+
+    private fun spliceData(navLocation: NavLocation?): String {
+        return if (navLocation == null) {
+            "空"
+        } else startTip + navLocation.id + endTip + navLocation.name
+    }
+
+
+    private fun getIdBySpliteData(locationDesc: String): Long {
+        if (TextUtils.isEmpty(locationDesc)) {
+            return -1
+        }
+        val startIndex = locationDesc.indexOf(startTip)
+        val endIndex = locationDesc.indexOf(endTip)
+        if (startIndex < 0 || endIndex < 0 || startIndex > endIndex) {
+            return -1
+        }
+        return try {
+            val id = locationDesc.substring(startIndex + startTip.length, endIndex)
+            TourCooLogUtil.i("位置在数据库中的对应id:$id")
+            Integer.parseInt(id).toLong()
+        } catch (e: Exception) {
+            ToastUtil.showFailed("异常了$e")
+            -1
+        }
+    }
+
+    private fun requestDeletePosition(idList: List<Long>) {
+        val ids = StringUtils.join(idList, ",")
+        TourCooLogUtil.d("要删除的位置信息：$ids")
+        showLoading("正在删除位置信息...")
+        RetrofitHelper.getInstance().server
+                .requestDeletePosition(ids)
+                .compose(RxSchedulers.applySchedulers())
+                .subscribe({ result ->
+                    closeLoading()
+                    when (result.status) {
+                        REQUEST_ERROR -> ToastUtils.showShort(result.errmsg)
+                        REQUEST_SUCCESS -> deleteLocationDataFromSq(idList)
+                        else -> {
+
+                        }
+                    }
+                }, { throwable ->
+                    closeLoading()
+                    TourCooLogUtil.e(TAG, "异常:$throwable")
+                    ToastUtils.showShort("请求失败:$throwable")
+                })
+    }
+
+
+    private fun parseSparseArrayToIdList(sparseArray: SparseArray<String>): ArrayList<Long> {
+        val size = sparseArray.size()
+        val idList = ArrayList<Long>()
+        var data: String
+        var id: Long
+        for (i in 0 until size) {
+            data = sparseArray.valueAt(i)
+            id = getIdBySpliteData(data)
+            if (id < 0) {
+                continue
+            }
+            idList.add(id)
+        }
+        return idList
     }
 
 }

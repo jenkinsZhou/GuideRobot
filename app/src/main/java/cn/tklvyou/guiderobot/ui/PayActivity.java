@@ -220,6 +220,7 @@ public class PayActivity extends BaseActivity {
             Intent intent = new Intent();
             intent.setClass(mContext, GuideActivity.class);
             startActivity(intent);
+            finish();
         }, 2000);
     }
 

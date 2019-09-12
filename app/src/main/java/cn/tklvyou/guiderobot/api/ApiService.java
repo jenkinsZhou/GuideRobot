@@ -40,4 +40,11 @@ public interface ApiService {
     @POST("/swoft/pay")
     Observable<BaseResult<OrderInfo>> requestOrderInfo();
 
+
+    /**
+     * 删除位置信息
+     */
+    @FormUrlEncoded
+    @POST("/swoft/delete")
+    Observable<BaseResult<Object>> requestDeletePosition(@Field("id") String ids);
 }

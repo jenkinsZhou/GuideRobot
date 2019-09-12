@@ -251,6 +251,7 @@ class SplashActivity : BaseActivity() {
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             ToastUtils.showShort("连接成功")
 //                            val intent = Intent(this, GuideActivity::class.java)
+
                             if (AppConfig.needPay) {
                                 val intent = Intent(this, PayActivity::class.java)
                                 startActivity(intent)

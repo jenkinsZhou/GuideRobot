@@ -111,8 +111,12 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
 
 
     public void closeLoading() {
-        if (loadingDialog != null && loadingDialog.isShowing()) {
-            loadingDialog.dismiss();
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing()) {
+                loadingDialog.dismiss();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

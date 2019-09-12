@@ -3,6 +3,7 @@ package cn.tklvyou.guiderobot.base
 import android.app.Application
 import android.content.Context
 import android.os.Environment
+import androidx.multidex.MultiDexApplication
 import cn.tklvyou.guiderobot.constant.RequestConstant.WEB_SOCKET_URL
 import cn.tklvyou.guiderobot.crash.CrashManager
 import cn.tklvyou.guiderobot.log.LogConfig.PATH_LOG_SAVE
@@ -28,7 +29,7 @@ import com.slamtec.slamware.AbstractSlamwarePlatform
  * Created by Administrator on 2019/4/24.
  */
 
-class MyApplication : Application() {
+class MyApplication : MultiDexApplication() {
 
     private lateinit var aiui: AIUITextSynthesis
 
