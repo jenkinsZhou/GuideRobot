@@ -7,18 +7,18 @@ public abstract class MsgPacket implements Packet {
 	public final static byte AIUI_PACKET_TYPE = 0x04;
 	public final static byte CTR_PACKET_TYPE = 0x05;
 	public final static byte CUSTOM_PACKET_TYPE = 0x2A;
-	
+
 	public final static byte ACK_TYPE = (byte) 0xff;
-	
+
 
 	protected final static byte[] RESERVED_DATA = new byte[] { DataPacket.SYNC_BYTE, 0x00, 0x00, 0x00 };
 	protected static final int TYPE_BIT = 2;
 
 	/**
 	 * 获取消息类型
-	 * 
+	 *
 	 * @return 消息类型
-	 * 
+	 *
 	 */
 	public abstract byte getMsgType();
 
@@ -63,14 +63,14 @@ public abstract class MsgPacket implements Packet {
 
 	/**
 	 * 获取消息ID
-	 * 
+	 *
 	 * @return
 	 */
 	public int getSeqID() {
 		return seqID;
 	}
-	
-	
+
+
 	/**
 	 * 设置消息ID
 	 * @return
@@ -78,8 +78,8 @@ public abstract class MsgPacket implements Packet {
 	public void setSeqID(int seqID){
 		this.seqID = seqID;
 	}
-	
-	
+
+
 	public boolean isReqType() {
 		if (getMsgType() != MsgPacket.ACK_TYPE) {
 			return true;

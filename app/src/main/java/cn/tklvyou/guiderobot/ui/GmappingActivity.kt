@@ -12,12 +12,10 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
 import cn.tklvyou.guiderobot.adapter.CheckedAdapter
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
-import cn.tklvyou.guiderobot.base.BaseResult
 import cn.tklvyou.guiderobot.base.MyApplication
 import cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR
 import cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_SUCCESS
@@ -357,10 +355,10 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     }
 
                     R.id.tvTest -> {
-                        var currentPose = robotPlatform!!.pose
-                        var rotation = currentPose?.rotation
-                        var yaw = rotation?.yaw
-                        var newRotation = Rotation()
+                        val currentPose = robotPlatform!!.pose
+                        val rotation = currentPose?.rotation
+                        val yaw = rotation?.yaw
+                        val newRotation = Rotation()
                         newRotation.yaw = 20.0f
                         currentPose.rotation = newRotation
                         robotPlatform!!.pose = currentPose
@@ -370,7 +368,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         LogUtils.i(TAG, "当前的yaw:$yaw")
                     }
                     R.id.tvTest0 -> {
-                        /*     var  currentPose = robotPlatform!!.pose
+                             var  currentPose = robotPlatform!!.pose
                              var rotation = currentPose?.rotation
                              var yaw = rotation?.yaw
                              LogUtils.d(TAG, "当前的yaw:$yaw")
@@ -380,8 +378,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                              robotPlatform!!.pose = currentPose
                              val rotation1 = Rotation(-MathUtil.PI*2)
                              val action = robotPlatform!!.rotate(rotation1)
-                             LogUtils.d(TAG, "当前的yaw:${action.actionName}")*/
-                        skipMainActivity()
+                             LogUtils.d(TAG, "当前的yaw:${action.actionName}")
                     }
 //                    R.id.saveOriginPoint -> {
 //                        val compisteMap = robotPlatform!!.compositeMap
@@ -615,7 +612,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    private fun getIdBySpliteData(locationDesc: String): Long {
+    private fun getIdBySplitData(locationDesc: String): Long {
         if (TextUtils.isEmpty(locationDesc)) {
             return -1
         }
@@ -645,15 +642,17 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     closeLoading()
                     when (result.status) {
                         REQUEST_ERROR -> ToastUtils.showShort(result.errmsg)
-                        REQUEST_SUCCESS -> deleteLocationDataFromSq(idList)
+                        REQUEST_SUCCESS ->{
+                            deleteLocationDataFromSq(idList)
+                            ToastUtil.showSuccess("位置信息已删除")
+                        }
                         else -> {
-
                         }
                     }
                 }, { throwable ->
                     closeLoading()
                     TourCooLogUtil.e(TAG, "异常:$throwable")
-                    ToastUtils.showShort("请求失败:$throwable")
+                    ToastUtils.showShort("删除失败:$throwable")
                 })
     }
 
@@ -665,7 +664,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         var id: Long
         for (i in 0 until size) {
             data = sparseArray.valueAt(i)
-            id = getIdBySpliteData(data)
+            id = getIdBySplitData(data)
             if (id < 0) {
                 continue
             }

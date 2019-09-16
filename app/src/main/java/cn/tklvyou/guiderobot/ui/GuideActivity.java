@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -33,7 +34,10 @@ import com.slamtec.slamware.robot.ArtifactUsage;
 import com.slamtec.slamware.robot.CompositeMap;
 import com.slamtec.slamware.robot.Location;
 import com.slamtec.slamware.robot.MoveOption;
+import com.slamtec.slamware.robot.PointPDF;
 import com.slamtec.slamware.robot.Pose;
+import com.slamtec.slamware.robot.RecoverLocalizationMovement;
+import com.slamtec.slamware.robot.RecoverLocalizationOptions;
 import com.slamtec.slamware.robot.Rotation;
 import com.slamtec.slamware.sdp.CompositeMapHelper;
 
@@ -381,6 +385,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             //机器人移动的时候精确到点
             moveOption.setPrecise(true);
             moveOption.setMilestone(true);
+
             Pose currentPose = slamWarePlatform.getPose();
             //先获取当前位置信息
             //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
@@ -402,6 +407,17 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             } else {
                 isTip = true;
                 speckTextSynthesis("小哥哥小姐姐们，请不要挡住我的路好嘛，谢谢！", false);
+                logD(TAG,"行走失败 准备重新定位...");
+                PointPDF  locationPdf = slamWarePlatform. getAuxLocation();
+                Location locationNew = locationPdf.getLocation();
+                float distant = locationPdf.getCircularErrorProbability();
+                RecoverLocalizationOptions recoverLocalizationOptions = new RecoverLocalizationOptions();
+                recoverLocalizationOptions.setMaxRecoverTimeInMilliSeconds(10000);
+                recoverLocalizationOptions.setRecoverMovementType(RecoverLocalizationMovement.NoMove);
+                RectF area = new RectF((locationNew.getX() - distant), (locationNew.getY() - distant), 2*distant, 2*distant);
+                IMoveAction act = slamWarePlatform.recoverLocalization(area,recoverLocalizationOptions);
+                logI(TAG,"重定位成功!");
+                act.waitUntilDone();
                 goToTheDestination(navLocation);
             }
             logI(TAG, "本次行走结束(模拟)");
@@ -971,9 +987,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
 
-    private void requestDeletePosition(List<Long> idList){
-        String ids = StringUtils.join(idList,",");
-        TourCooLogUtil.d("要删除的位置信息："+ids);
+    private void requestDeletePosition(List<Long> idList) {
+        String ids = StringUtils.join(idList, ",");
+        TourCooLogUtil.d("要删除的位置信息：" + ids);
         showLoading("正在删除位置信息...");
         RetrofitHelper.getInstance().getServer()
                 .requestDeletePosition(ids)
