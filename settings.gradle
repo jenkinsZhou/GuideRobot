@@ -1,1 +1,1 @@
-include ':app', ':SerialPortLibrary', ':usbSerialForAndroid', ':UARTAIUICtr', ':UARTKit'
+include ':app', ':SerialPortLibrary', ':usbSerialForAndroid', ':UARTAIUICtr', ':UARTKit', ':libusbcamera', ':ArcFaceUtils'

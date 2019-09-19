@@ -19,6 +19,24 @@ public class AppConfigInfo {
     private boolean is_charge;
     private boolean is_debug;
     private String total_fee;
+    private String talk;
+    private int second;
+
+    public String getTalk() {
+        return talk;
+    }
+
+    public void setTalk(String talk) {
+        this.talk = talk;
+    }
+
+    public int getSecond() {
+        return second;
+    }
+
+    public void setSecond(int second) {
+        this.second = second;
+    }
 
     public boolean isIs_charge() {
         return is_charge;

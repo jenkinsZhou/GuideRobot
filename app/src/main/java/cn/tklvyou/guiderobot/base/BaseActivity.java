@@ -35,7 +35,6 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
     private AIUITextSynthesis aiuiTextSynthesis;
     protected LoadingProgressDialog dialog;
     protected FrameLoadingDialog loadingDialog;
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

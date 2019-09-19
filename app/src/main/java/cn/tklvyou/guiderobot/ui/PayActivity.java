@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,12 +23,18 @@ import com.google.gson.Gson;
 
 import java.nio.ByteBuffer;
 
+import cn.tklvyou.arcfaceutils.ArcFaceUtils;
+import cn.tklvyou.arcfaceutils.interfaces.IArcFacePeopleListener;
+import cn.tklvyou.arcfaceutils.interfaces.IArcFaceStatsuListener;
+import cn.tklvyou.guiderobot.RobotAction;
 import cn.tklvyou.guiderobot.api.RetrofitHelper;
 import cn.tklvyou.guiderobot.api.RxSchedulers;
 import cn.tklvyou.guiderobot.base.BaseActivity;
+import cn.tklvyou.guiderobot.base.MyApplication;
 import cn.tklvyou.guiderobot.common.AppConfig;
 import cn.tklvyou.guiderobot.log.TourCooLogUtil;
 import cn.tklvyou.guiderobot.manager.GlideManager;
+import cn.tklvyou.guiderobot.model.ControllerModel;
 import cn.tklvyou.guiderobot.model.LocationModel;
 import cn.tklvyou.guiderobot.model.Order;
 import cn.tklvyou.guiderobot.model.OrderInfo;
@@ -40,7 +47,13 @@ import cn.tklvyou.guiderobot.websocket.WebSocketHandler;
 import cn.tklvyou.guiderobot.websocket.response.ErrorResponse;
 import cn.tklvyou.guiderobot.widget.toast.ToastUtil;
 import cn.tklvyou.guiderobot_new.R;
+import cn.tklvyou.serialportlibrary.SerialPort;
 
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_ACTION;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_BREATHE;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_CLOSE;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_LIGHT;
+import static cn.tklvyou.guiderobot.RobotAction.getHeadLedCommand;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_ERROR;
 import static cn.tklvyou.guiderobot.constant.RequestConstant.REQUEST_SUCCESS;
 
@@ -218,6 +231,7 @@ public class PayActivity extends BaseActivity {
     private void skipGuideActivityDelay() {
         handler.postDelayed(() -> {
             Intent intent = new Intent();
+            //跳转至讲解页面
             intent.setClass(mContext, GuideActivity.class);
             startActivity(intent);
             finish();
@@ -243,4 +257,12 @@ public class PayActivity extends BaseActivity {
         return Bitmap.createBitmap(bitmap, 0, 0, width, height,
                 matrix, true);
     }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+
 }

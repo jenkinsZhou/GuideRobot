@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,7 +28,6 @@ import java.util.concurrent.Executors;
  */
 
 public class MotorController {
-
     private Context context;
     private UsbManager manager;   //USB管理器
     private UsbDevice mUsbSerialDevice;  //找到的USB转串口设备
@@ -35,10 +36,10 @@ public class MotorController {
     private PendingIntent intent;
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
     private static final String TAG = "MotorController";
-
+    private Handler handler;
 
     public MotorController(Context context, MotorControllerListener listener) {
-
+        handler = new Handler(Looper.getMainLooper());
         this.context = context;
         this.listener = listener;
         intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -94,8 +95,9 @@ public class MotorController {
             } else {
                 Log.e(TAG, "获取权限失败");
                 /*java*/
-
-                Toast.makeText(context, "权限获取失败，请重启再试", Toast.LENGTH_SHORT).show();
+                handler.post(() -> {
+                    Toast.makeText(context, "权限获取失败，请重启再试", Toast.LENGTH_SHORT).show();
+                });
                 return;
             }
         }

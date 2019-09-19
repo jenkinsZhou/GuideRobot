@@ -1,9 +1,15 @@
 package cn.tklvyou.guiderobot.base
 
-import android.app.Application
+import android.Manifest
 import android.content.Context
 import android.os.Environment
+import android.text.TextUtils
+import android.widget.Toast
+import androidx.annotation.NonNull
 import androidx.multidex.MultiDexApplication
+import cn.tklvyou.guiderobot.CommonConfig
+import cn.tklvyou.guiderobot.CommonConfig.PREF_KEY_DEBUG_MODE
+import cn.tklvyou.guiderobot.common.AppConfig
 import cn.tklvyou.guiderobot.constant.RequestConstant.WEB_SOCKET_URL
 import cn.tklvyou.guiderobot.crash.CrashManager
 import cn.tklvyou.guiderobot.log.LogConfig.PATH_LOG_SAVE
@@ -13,6 +19,7 @@ import cn.tklvyou.guiderobot.log.widget.LogFileEngineFactory
 import cn.tklvyou.guiderobot.log.widget.config.LogLevel
 import cn.tklvyou.guiderobot.model.DaoMaster
 import cn.tklvyou.guiderobot.model.DaoSession
+import cn.tklvyou.guiderobot.threadpool.ThreadPoolManager
 import cn.tklvyou.guiderobot.utils.MotorController
 import cn.tklvyou.guiderobot.websocket.WebSocketHandler
 import cn.tklvyou.guiderobot.websocket.WebSocketSetting
@@ -21,8 +28,12 @@ import cn.tklvyou.guiderobot.widget.toast.UiManager
 import cn.tklvyou.serialportlibrary.BuildConfig
 
 import cn.tklvyou.serialportlibrary.SerialPort
+import com.blankj.utilcode.util.SPUtils
+import com.google.gson.Gson
 import com.iflytek.aiui.uartkit.UARTAgent
 import com.iflytek.aiui.uartkit.ctrdemo.AIUITextSynthesis
+
+
 import com.slamtec.slamware.AbstractSlamwarePlatform
 
 /**
@@ -45,31 +56,9 @@ class MyApplication : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         mContext = this
-        initLog()
+        initAsync()
         //异常处理初始化
-        CrashManager.init(this)
-        initGreenDao()
-        UiManager.init(this)
-        UiManager.getInstance().toastControl = ToastImpl()
-        //COM1串口
-        aiui = AIUITextSynthesis(this)
-        //COM2串口
-        serialPort = SerialPort.getInstance("/dev/ttyS1", 9600)
-        serialPort.installAllConfigs()
-//        val timer = Timer()
-//        val task = object : TimerTask() {
-//            override fun run() {
-//                serialPort.sendDataToSerialPort("test".toByteArray())
-//            }
-//        }
-//        timer.schedule(task, 2000, 3000)
 
-
-        //电机控制类  数据监听回调
-        platform = MotorController(this, MotorController.MotorControllerListener { data: String? ->
-
-        })
-        initWebSocket()
     }
 
 
@@ -121,8 +110,10 @@ class MyApplication : MultiDexApplication() {
      * 初始化日志配置
      */
     private fun initLog() {
+        AppConfig.isDebugMode = SPUtils.getInstance().getBoolean(PREF_KEY_DEBUG_MODE, false)
+        CommonConfig.DEBUG_MODE = AppConfig.isDebugMode
         TourCooLogUtil.getLogConfig()
-                .configAllowLog(BuildConfig.DEBUG)
+                .configAllowLog(CommonConfig.DEBUG_MODE)
                 .configTagPrefix(TAG_LOG_PRE_SUFFIX)
                 .configShowBorders(false).configLevel(LogLevel.TYPE_VERBOSE)
         // 支持输入日志到文件
@@ -161,5 +152,33 @@ class MyApplication : MultiDexApplication() {
     }
 
 
+    private fun initAsync() {
+        ThreadPoolManager.getThreadPoolProxy().execute {
+            initLog()
+            CrashManager.init(this)
+            initGreenDao()
+            UiManager.init(this)
+            UiManager.getInstance().toastControl = ToastImpl()
+            //COM1串口
+            aiui = AIUITextSynthesis(this)
+            //COM2串口
+            serialPort = SerialPort.getInstance("/dev/ttyS1", 9600)
+            serialPort.installAllConfigs()
+//        val timer = Timer()
+//        val task = object : TimerTask() {
+//            override fun run() {
+//                serialPort.sendDataToSerialPort("test".toByteArray())
+//            }
+//        }
+//        timer.schedule(task, 2000, 3000)
+
+
+            //电机控制类  数据监听回调
+            platform = MotorController(this, MotorController.MotorControllerListener { data: String? ->
+
+            })
+            initWebSocket()
+        }
+    }
 
 }

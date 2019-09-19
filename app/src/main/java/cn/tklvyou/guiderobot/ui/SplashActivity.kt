@@ -230,6 +230,8 @@ class SplashActivity : BaseActivity() {
         AppConfig.isDebugMode = config.isIs_debug
         AppConfig.payAmont = config.total_fee
         AppConfig.needPay = config.isIs_charge
+        AppConfig.defaultSpeak = config.talk
+        AppConfig.defaultDelay = config.second
     }
 
 
@@ -250,18 +252,10 @@ class SplashActivity : BaseActivity() {
                             Robot.getInstance().slamWarePlatform = robotPlatform
                             (application as MyApplication).setRobotPlatform(robotPlatform)
                             ToastUtils.showShort("连接成功")
-//                            val intent = Intent(this, GuideActivity::class.java)
-
-                            if (AppConfig.needPay) {
-                                val intent = Intent(this, PayActivity::class.java)
-                                startActivity(intent)
-                            } else {
-                                val intent = Intent(this, GuideActivity::class.java)
-                                startActivity(intent)
-                            }
+                            val intent = Intent(this, HomeActivity::class.java)
+                            startActivity(intent)
                         }
                         hideDialog()
-                        finish()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         if (e is ConnectionTimeOutException) {

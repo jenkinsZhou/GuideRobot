@@ -12,4 +12,7 @@ public class CommonConfig {
      * 是否开启调试模式
      */
     public static boolean DEBUG_MODE = true;
+
+    public static final String PREF_KEY_DEBUG_MODE = "PREF_KEY_DEBUG_MODE";
+
 }

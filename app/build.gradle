@@ -73,8 +73,10 @@ dependencies {
     implementation project(':SerialPortLibrary')
     implementation files('libs/slamware_sdk_android.jar')
     implementation project(path: ':UARTAIUICtr')
+    implementation project(':ArcFaceUtils')
     //utilcode
     implementation 'com.blankj:utilcode:1.23.7'
+
     //GreenDao数据库框架
     implementation 'org.greenrobot:greendao:3.2.2'
     implementation 'com.afollestad.material-dialogs:core:2.8.1'

@@ -1,8 +1,12 @@
 package cn.tklvyou.guiderobot.ui;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.RectF;
@@ -12,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -27,7 +32,6 @@ import com.google.gson.Gson;
 import com.mylhyl.circledialog.CircleDialog;
 import com.slamtec.slamware.AbstractSlamwarePlatform;
 import com.slamtec.slamware.action.ActionStatus;
-import com.slamtec.slamware.action.IAction;
 import com.slamtec.slamware.action.IMoveAction;
 import com.slamtec.slamware.geometry.Line;
 import com.slamtec.slamware.robot.ArtifactUsage;
@@ -43,10 +47,14 @@ import com.slamtec.slamware.sdp.CompositeMapHelper;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.tklvyou.arcfaceutils.ArcFaceUtils;
+import cn.tklvyou.arcfaceutils.interfaces.IArcFacePeopleListener;
+import cn.tklvyou.arcfaceutils.interfaces.IArcFaceStatsuListener;
 import cn.tklvyou.guiderobot.RobotAction;
 import cn.tklvyou.guiderobot.adapter.CheckedAdapter;
 import cn.tklvyou.guiderobot.adapter.LogAdapter;
@@ -80,8 +88,12 @@ import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_LEFT_90;
 import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_30;
 import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_45;
 import static cn.tklvyou.guiderobot.RobotAction.ACTION_ROTATION_TURN_RIGHT_90;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_ACTION;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_CLOSE;
+import static cn.tklvyou.guiderobot.RobotAction.HEAD_LED_LIGHT;
 import static cn.tklvyou.guiderobot.RobotAction.TYPE_ACTION;
 import static cn.tklvyou.guiderobot.RobotAction.TYPE_TEXT;
+import static cn.tklvyou.guiderobot.RobotAction.getHeadLedCommand;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_CLOSE_LOADING;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_D;
 import static cn.tklvyou.guiderobot.constant.HomeConstant.MSG_LOG_E;
@@ -106,7 +118,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private static final String endTip = "，名称:";
     private Context mContext;
     private static final long END = 0L;
-    private static final long ONE_SECOND = 1000L;
+    private static final long delayTime = 100L;
     public static final String TAG = "GuideActivity";
     private ImageView ivShow;
     private ImageView btnStartNav;
@@ -122,7 +134,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     /**
      * 语音是否说完
      */
-    private boolean speakFinish = false;
+    private boolean speakFinish = true;
     /**
      * 数据库存储的位置点
      */
@@ -134,6 +146,11 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private MotorController motorController;
     private SerialPort serialPort;
     private ArrayList<Long> idList = new ArrayList<>();
+
+    /**
+     * 是否正在讲解中
+     */
+    private boolean isGuiding = false;
 
 
     @Override
@@ -157,23 +174,23 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         }
         ivShow = findViewById(R.id.ivShow);
         btnStartNav = findViewById(R.id.btnStartNav);
-        btnStartNav.setOnClickListener(this);
+//        btnStartNav.setOnClickListener(this);
+        findViewById(R.id.btnClear).setOnClickListener(this);
+        findViewById(R.id.btnToBottom).setOnClickListener(this);
+//        initFaceUtil();
         initData();
+        loadRobotMapAndStartGuide();
     }
 
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.btnStartNav:
-                logI(TAG, "点击了");
-                showLoading("阿双方均氨基酸法律框架");
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeLoading();
-                    }
-                }, 2000);
+            case R.id.btnClear:
+                clearLogList();
+                break;
+            case R.id.btnToBottom:
+                toBottom();
                 break;
             default:
                 break;
@@ -187,15 +204,14 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         if (navLocationList == null) {
             ToastUtils.showShort("数据库初始化异常");
             finish();
-            return;
         }
-        initRobotMap();
+
     }
 
     /**
-     * 初始化机器人自动寻路需要的地图
+     * 初始化机器人自动寻路需要的地图并导航
      */
-    private void initRobotMap() {
+    private void loadRobotMapAndStartGuide() {
         ThreadPoolManager.getThreadPoolProxy().execute(new Runnable() {
             @Override
             public void run() {
@@ -272,6 +288,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     @Override
     protected void onDestroy() {
+        speakFinish = true;
         super.onDestroy();
         mHandler.removeCallbacksAndMessages(null);
     }
@@ -296,6 +313,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             doFinishByCondition();
             return;
         }
+        //开启讲解模式
+        isGuiding = true;
         setViewVisible(btnStartNav, false);
         RetrofitHelper.getInstance().getServer()
                 .getLocationMessage(id)
@@ -305,7 +324,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     switch (result.getStatus()) {
                         case REQUEST_ERROR:
                             ToastUtils.showShort(result.getErrmsg());
-                            setViewVisible(btnStartNav, true);
+                            setViewVisible(btnStartNav, false);
                             break;
                         case REQUEST_SUCCESS:
                             LocationModel currentLocation = result.getData();
@@ -325,7 +344,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 }, throwable -> {
                     closeLoading();
                     ToastUtils.showShort("请求失败");
-                    setViewVisible(btnStartNav, true);
+                    setViewVisible(btnStartNav, false);
                 });
     }
 
@@ -344,21 +363,19 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 if (mCurrentPositionInfo == null) {
                     ToastUtils.showShort("未获取到位置信息");
                     logE(TAG, "未获取到位置信息");
-                    delay(ONE_SECOND);
+                    delay(delayTime);
                     logI(TAG, "即将请求下一个讲解点信息");
                     sendEmptyMsg(MSG_START);
                     return;
                 }
                 logI(TAG, "正在加载位置图片...");
                 loadImage(locationModel.getThumb(), ivShow);
-                logI(TAG, "等待2秒后开始说话");
-                delay(ONE_SECOND * 2);
-                logI(TAG, "2秒后开始前往当前目的地");
-                delay(ONE_SECOND * 2);
+                logI(TAG, "200毫秒后开始前往当前目的地");
+                delay(delayTime * 2);
                 logI(TAG, "即将执行goToTheDestination()");
                 goToTheDestination(mCurrentPositionInfo);
-                logD(TAG, "已经到达目的地 2秒后开始执行动作指令...");
-                delay(ONE_SECOND * 2);
+                logD(TAG, "已经到达目的地 200毫秒后开始执行动作指令...");
+                delay(delayTime * 2);
                 //已经到达目的地 开始执行指令
                 handleAction(locationModel);
             });
@@ -389,16 +406,16 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             Pose currentPose = slamWarePlatform.getPose();
             //先获取当前位置信息
             //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
-            int segmentId = navLocation.getId().intValue();
-            Line line = new Line(segmentId, currentPose.getX(), currentPose.getY(), navLocation.getX(), navLocation.getY());
-            TourCooLogUtil.i("虚拟线路", line);
+//            int segmentId = navLocation.getId().intValue();
+//            Line line = new Line(segmentId, currentPose.getX(), currentPose.getY(), navLocation.getX(), navLocation.getY());
+//            TourCooLogUtil.i("虚拟线路", line);
             //添加虚拟路径
-            slamWarePlatform.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line);
+//            slamWarePlatform.addLine(ArtifactUsage.ArtifactUsageVirtualTrack, line);
             Location location = new Location(navLocation.getX(), navLocation.getY(), navLocation.getZ());
             //todo 后面传旋转角度
             logD(TAG, "当前的位置信息:X=" + currentPose.getX() + "Y=" + currentPose.getY());
             logI(TAG, "要前往的位置信息:X=" + navLocation.getX() + "Y=" + navLocation.getY());
-            IMoveAction action = slamWarePlatform.moveTo(location, moveOption, 0);
+            IMoveAction action = slamWarePlatform.moveTo(location, moveOption, navLocation.getRotation());
             ActionStatus status = action.waitUntilDone();
             if (status == ActionStatus.FINISHED) {
                 showToast("本次行走结束");
@@ -407,17 +424,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             } else {
                 isTip = true;
                 speckTextSynthesis("小哥哥小姐姐们，请不要挡住我的路好嘛，谢谢！", false);
-                logD(TAG,"行走失败 准备重新定位...");
-                PointPDF  locationPdf = slamWarePlatform. getAuxLocation();
-                Location locationNew = locationPdf.getLocation();
-                float distant = locationPdf.getCircularErrorProbability();
-                RecoverLocalizationOptions recoverLocalizationOptions = new RecoverLocalizationOptions();
-                recoverLocalizationOptions.setMaxRecoverTimeInMilliSeconds(10000);
-                recoverLocalizationOptions.setRecoverMovementType(RecoverLocalizationMovement.NoMove);
-                RectF area = new RectF((locationNew.getX() - distant), (locationNew.getY() - distant), 2*distant, 2*distant);
-                IMoveAction act = slamWarePlatform.recoverLocalization(area,recoverLocalizationOptions);
-                logI(TAG,"重定位成功!");
-                act.waitUntilDone();
+                delay(6000);
                 goToTheDestination(navLocation);
             }
             logI(TAG, "本次行走结束(模拟)");
@@ -602,7 +609,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 speckTextSynthesis(actionBean.getValue(), false);
                 //如果是语音指令 则必须要等到语音说完才能执行下一步 否则一直阻塞线程
                 while ((!speakFinish)) {
-                    delay(ONE_SECOND);
+                    delay(500L);
                     logD(TAG, "等待说话结束...——>说话是否结束 = " + speakFinish);
                 }
                 logI(TAG, "已经退出死循环...");
@@ -619,7 +626,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 showToast("未匹配到指令类型");
                 break;
         }
-        delay(ONE_SECOND);
+        delay(delayTime);
         logD(TAG, "继续执行executeActionByActionList()方法 直到actionList内没有指令...");
         executeActionByActionList(actionList);
     }
@@ -863,19 +870,27 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }*/
     private void skipHome() {
         Intent intent = new Intent();
-        intent.setClass(mContext, PayActivity.class);
+        intent.setClass(mContext, HomeActivity.class);
         startActivity(intent);
         finish();
     }
 
 
     private void doFinishByCondition() {
-        if (AppConfig.needPay) {
-            skipHome();
-        } else {
-            setViewGone(btnStartNav, true);
-            GlideManager.loadImg(R.drawable.default_bg, ivShow);
+        //置为非讲解模式
+        isGuiding = false;
+        //显示按钮
+        setViewGone(btnStartNav, false);
+        Gson gson = new Gson();
+        try {
+            Pose pose = slamWarePlatform.getPose();
+            SPUtils.getInstance().put("pose", gson.toJson(pose));
+            logI(TAG, "doFinishByCondition()--->" + "机器人位置信息保存成功:X = " + pose.getX() + " , Y = " + pose.getY());
+        } catch (Exception e) {
+            logE(TAG, "doFinishByCondition()--->" + e.toString());
+            ToastUtil.showFailed("doFinishByCondition()--->" + e.toString());
         }
+        runUiThreadDelay(this::skipHome, 2000);
     }
 
 
@@ -987,6 +1002,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
 
+    @SuppressLint("CheckResult")
     private void requestDeletePosition(List<Long> idList) {
         String ids = StringUtils.join(idList, ",");
         TourCooLogUtil.d("要删除的位置信息：" + ids);
@@ -1013,4 +1029,29 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 });
     }
 
+    private void test(View view) {
+        AnimatorSet set = new AnimatorSet();
+        ObjectAnimator animator = ObjectAnimator.ofFloat(view, "rotationX", 0, 360);
+        //绕X轴翻转
+        set.playTogether(animator);
+        //时间
+        set.setDuration(5 * 1000).start();
+    }
+
+
+    private void clearLogList() {
+        logList.clear();
+        logAdapter.notifyDataSetChanged();
+    }
+
+    private void toBottom() {
+        rvLog.scrollToPosition(logAdapter.getData().size() - 1);
+    }
+
+
+
+
+    private void runUiThreadDelay(Runnable runnable, int delayTime) {
+        mHandler.postDelayed(runnable, delayTime);
+    }
 }

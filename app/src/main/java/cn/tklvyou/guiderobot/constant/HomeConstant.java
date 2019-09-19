@@ -52,4 +52,7 @@ public class HomeConstant {
      * 日志
      */
     public static final int MSG_LOG_E  = 107;
+
+
+
 }

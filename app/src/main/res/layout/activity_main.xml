@@ -19,7 +19,52 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:src="@drawable/default_bg"
-        android:visibility="visible" />
+        android:visibility="gone" />
+
+
+
+
+    <LinearLayout
+        android:id="@+id/llLogArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnToBottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="到底部" />
+
+            <Button
+                android:id="@+id/btnClear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清空" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLog"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_200"
+            android:layout_marginTop="@dimen/dp_5"
+            android:background="@color/white"
+            android:padding="@dimen/dp_5" />
+
+
+    </LinearLayout>
+
+    <SurfaceView
+        android:id="@+id/textureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
     <ImageView
         android:id="@+id/btnStartNav"
@@ -28,37 +73,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="300dp"
         android:background="@drawable/btn_start"
-        android:scaleType="centerInside"
         android:gravity="center"
+        android:scaleType="centerInside"
         android:textSize="20sp" />
-
-    <LinearLayout
-        android:id="@+id/llLogArea"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLog"
-            android:padding="@dimen/dp_5"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/dp_200"
-            android:layout_marginTop="@dimen/dp_5"
-            android:background="@color/white" />
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <Button
-                    android:text="到底部"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <Button
-                    android:text="清空"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-    </LinearLayout>
-
-
-
 </FrameLayout>

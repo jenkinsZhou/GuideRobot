@@ -146,7 +146,7 @@ public class RobotAction {
      * @param action
      * @return
      */
-    private static byte[] getHeadLedCommand(String action) {
+    public static byte[] getHeadLedCommand(String action) {
         if (action.equals(HEAD_LED_LIGHT)) {
             return new byte[]{0x55, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x59};
         } else if (action.equals(HEAD_LED_CLOSE)) {

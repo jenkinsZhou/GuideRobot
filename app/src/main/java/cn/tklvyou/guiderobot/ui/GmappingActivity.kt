@@ -1,6 +1,10 @@
 package cn.tklvyou.guiderobot.ui
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Handler
@@ -33,6 +37,7 @@ import com.afollestad.materialdialogs.customview.getCustomView
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SPUtils
+import com.blankj.utilcode.util.SnackbarUtils.dismiss
 import com.blankj.utilcode.util.ToastUtils
 import com.google.gson.Gson
 import com.mylhyl.circledialog.CircleDialog
@@ -47,6 +52,7 @@ import java.util.*
 import com.slamtec.slamware.sdp.CompositeMapHelper
 import kotlinx.android.synthetic.main.activity_splash.*
 import org.apache.commons.lang.StringUtils
+import java.io.File
 import kotlin.collections.ArrayList
 
 @SuppressLint("CheckResult")
@@ -102,17 +108,17 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
             }
 
         })
-
         saveMap.setOnClickListener(this)
         clearMap.setOnClickListener(this)
         saveLoaction.setOnClickListener(this)
 //        saveOriginPoint.setOnClickListener(this)
 //        navOriginPoint.setOnClickListener(this)
-        tvTest.setOnClickListener(this)
+        tvTest1.setOnClickListener(this)
         tvTest0.setOnClickListener(this)
         btnSafeExit.setOnClickListener(this)
         btnForceExit.setOnClickListener(this)
         tvClearPosition.setOnClickListener(this)
+        btnCurrentInfo.setOnClickListener(this)
         val path = "/sdcard/robot/map.stcm"
 
         val compositeMapHelper = CompositeMapHelper()
@@ -133,7 +139,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     try {
 
                         /* 刷新Pose */
-                        pose = robotPlatform!!.getPose()
+                        pose = robotPlatform!!.pose
 
 //                        if (!isInit) {
 //                            isInit = true
@@ -336,6 +342,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     }
 
                     R.id.btnSafeExit -> {
+                        ToastUtil.show("将要保存的位置:"+"X = "+pose!!.x+"位置Y = "+pose!!.y)
                         MaterialDialog(this).show {
                             title(R.string.tip)
                             message(R.string.safe_exit)
@@ -354,31 +361,21 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         }
                     }
 
-                    R.id.tvTest -> {
-                        val currentPose = robotPlatform!!.pose
-                        val rotation = currentPose?.rotation
-                        val yaw = rotation?.yaw
-                        val newRotation = Rotation()
-                        newRotation.yaw = 20.0f
-                        currentPose.rotation = newRotation
-                        robotPlatform!!.pose = currentPose
-                        val rotation1 = Rotation(MathUtil.PI * 2)
-                        val action = robotPlatform!!.rotate(rotation1)
-                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")
-                        LogUtils.i(TAG, "当前的yaw:$yaw")
+                    R.id.tvTest1 -> {
+                        flipMap(slamWareMap)
                     }
                     R.id.tvTest0 -> {
-                             var  currentPose = robotPlatform!!.pose
-                             var rotation = currentPose?.rotation
-                             var yaw = rotation?.yaw
-                             LogUtils.d(TAG, "当前的yaw:$yaw")
-                             var newRotation = Rotation()
-                             newRotation.yaw  = 1f
-                             currentPose.rotation = newRotation
-                             robotPlatform!!.pose = currentPose
-                             val rotation1 = Rotation(-MathUtil.PI*2)
-                             val action = robotPlatform!!.rotate(rotation1)
-                             LogUtils.d(TAG, "当前的yaw:${action.actionName}")
+                        var currentPose = robotPlatform!!.pose
+                        var rotation = currentPose?.rotation
+                        var yaw = rotation?.yaw
+                        LogUtils.d(TAG, "当前的yaw:$yaw")
+                        var newRotation = Rotation()
+                        newRotation.yaw = 1f
+                        currentPose.rotation = newRotation
+                        robotPlatform!!.pose = currentPose
+                        val rotation1 = Rotation(-MathUtil.PI * 2)
+                        val action = robotPlatform!!.rotate(rotation1)
+                        LogUtils.d(TAG, "当前的yaw:${action.actionName}")
                     }
 //                    R.id.saveOriginPoint -> {
 //                        val compisteMap = robotPlatform!!.compositeMap
@@ -423,6 +420,9 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
 
                     R.id.tvClearPosition -> {
                         showDeleteDialog()
+                    }
+                    R.id.btnCurrentInfo->{
+                        showCurrentPosition()
                     }
                     else -> {
 
@@ -642,7 +642,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     closeLoading()
                     when (result.status) {
                         REQUEST_ERROR -> ToastUtils.showShort(result.errmsg)
-                        REQUEST_SUCCESS ->{
+                        REQUEST_SUCCESS -> {
                             deleteLocationDataFromSq(idList)
                             ToastUtil.showSuccess("位置信息已删除")
                         }
@@ -673,4 +673,31 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         return idList
     }
 
+
+    private fun flipMap(view: View) {
+        val set = AnimatorSet()
+        val animator = ObjectAnimator.ofFloat(view, "rotation", 0f, 90f)
+        //绕X轴翻转
+        set.playTogether(animator)
+        //时间
+        set.setDuration((2 * 1000).toLong()).start()
+    }
+
+
+    private fun showCurrentPosition () {
+        val currentPositionInfo = "当前位置信息:X="+robotPlatform?.pose!!.x+", Y = "+robotPlatform?.pose!!.y
+        AlertDialog.Builder(this)
+                //这里是表头的内容
+                .setTitle("当前位置信息")
+                //这里是中间显示的具体信息
+                .setMessage(currentPositionInfo)
+                //这个string是设置左边按钮的文字
+                .setPositiveButton("确定"
+                ) { dialog, which ->
+                    //setPositiveButton里面的onClick执行的是左边按钮
+                    dialog.dismiss()
+                }
+                .show()
+
+    }
 }

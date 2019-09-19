@@ -23,4 +23,8 @@ public class AppConfig {
      * 是否需要支付
      */
     public static boolean needPay = false;
+
+    public static String defaultSpeak = "瞧一瞧看一看嘞";
+
+    public static int defaultDelay = 20000;
 }

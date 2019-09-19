@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -38,31 +40,28 @@ public class CrashErrorActivity extends Activity {
         TourCooLogUtil.e(TAG, "errorInformation:" + errorInformation);
         //查看
         Button btnCheck = findViewById(R.id.btn_check);
-        btnCheck.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(CrashErrorActivity.this)
-                        .setTitle("错误详情")
-                        .setCancelable(true)
-                        .setMessage(errorInformation)
-                        .setPositiveButton("返回", null)
-                        .setNeutralButton("复制", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                copyErrorToClipboard();
-                                Toast.makeText(CrashErrorActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .show();
-            }
-        });
+        btnCheck.setOnClickListener(v -> new AlertDialog.Builder(CrashErrorActivity.this)
+                .setTitle("错误详情")
+                .setCancelable(true)
+                .setMessage(errorInformation)
+                .setPositiveButton("返回", null)
+                .setNeutralButton("复制", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        copyErrorToClipboard();
+                        runOnUiThread(() -> {
+                            Toast.makeText(CrashErrorActivity.this, "已复制到剪切板", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                })
+                .show());
         //上传
         Button moreInfoButton = findViewById(R.id.custom_activity_on_crash_error_activity_more_info_button);
         if (CrashManager.isShowErrorDetailsFromIntent(getIntent())) {
             moreInfoButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(CrashErrorActivity.this, "执行上传", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> Toast.makeText(CrashErrorActivity.this, "执行上传", Toast.LENGTH_SHORT).show());
                 }
             });
         } else {
