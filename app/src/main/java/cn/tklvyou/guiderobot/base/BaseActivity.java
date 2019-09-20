@@ -45,6 +45,7 @@ public abstract class BaseActivity extends AppCompatActivity implements AIUIText
         aiuiTextSynthesis.setITTSListener(this);
         dialog = new LoadingProgressDialog(this);
         loadingDialog = new FrameLoadingDialog(this, "加载中...");
+        loadingDialog.setCancelable(true);
         initView();
     }
 
