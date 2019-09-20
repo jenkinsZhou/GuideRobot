@@ -53,6 +53,7 @@ class SplashActivity : BaseActivity() {
             startActivity(intent)
             System.exit(0)
         }
+        initRefreshConfig()
         getAppConfigInfo()
         btnGMapping.setOnClickListener {
             showDialog()
@@ -80,7 +81,6 @@ class SplashActivity : BaseActivity() {
                             startActivity(intent)
                         }
                         hideDialog()
-                        finish()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         if (e is ConnectionTimeOutException) {
@@ -197,24 +197,27 @@ class SplashActivity : BaseActivity() {
 
     @SuppressLint("CheckResult")
     private fun getAppConfigInfo() {
+        showLoading("正在同步系统配置...")
         RetrofitHelper.getInstance().server
                 .requestAppConfig()
                 .compose(RxSchedulers.applySchedulers())
                 .subscribe({ result ->
                     hideDialog()
+                    closeLoading()
                     when (result.status) {
                         RequestConstant.REQUEST_ERROR -> {
                             ToastUtils.showShort(result.errmsg)
                         }
                         RequestConstant.REQUEST_SUCCESS -> {
-                            ToastUtils.showShort("请求成功")
                             // 获取服务器配置
                             try {
                                 TourCooLogUtil.i("获取app信息成功")
                                 loadAppConfig(result.data)
+                                ToastUtil.showSuccess("系统配置同步成功")
                             } catch (e: Exception) {
                                 /* Exception Handle code*/
                                 ToastUtils.showShort(e.message)
+                                closeLoading()
                             }
                         }
 
@@ -235,6 +238,8 @@ class SplashActivity : BaseActivity() {
         AppConfig.defaultSpeak = config.talk
         AppConfig.defaultDelay = config.second * AppConfig.ONE_SECOND
         SPUtils.getInstance().put(CommonConfig.PREF_KEY_DEBUG_MODE, AppConfig.isDebugMode)
+        AppConfig.isDebugMode = SPUtils.getInstance().getBoolean(CommonConfig.PREF_KEY_DEBUG_MODE, false)
+        CommonConfig.DEBUG_MODE = AppConfig.isDebugMode
     }
 
 
@@ -272,6 +277,12 @@ class SplashActivity : BaseActivity() {
 
             }
             btnNavigation.isEnabled = true
+        }
+    }
+
+    private fun initRefreshConfig(){
+        btnRefreshConfig.setOnClickListener {
+            getAppConfigInfo()
         }
     }
 }
