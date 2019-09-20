@@ -33,6 +33,13 @@ import com.mylhyl.circledialog.CircleDialog;
 import com.slamtec.slamware.AbstractSlamwarePlatform;
 import com.slamtec.slamware.action.ActionStatus;
 import com.slamtec.slamware.action.IMoveAction;
+import com.slamtec.slamware.exceptions.ConnectionFailException;
+import com.slamtec.slamware.exceptions.ConnectionTimeOutException;
+import com.slamtec.slamware.exceptions.InvalidArgumentException;
+import com.slamtec.slamware.exceptions.ParseInvalidException;
+import com.slamtec.slamware.exceptions.RequestFailException;
+import com.slamtec.slamware.exceptions.UnauthorizedRequestException;
+import com.slamtec.slamware.exceptions.UnsupportedCommandException;
 import com.slamtec.slamware.geometry.Line;
 import com.slamtec.slamware.robot.ArtifactUsage;
 import com.slamtec.slamware.robot.CompositeMap;
@@ -43,6 +50,7 @@ import com.slamtec.slamware.robot.Pose;
 import com.slamtec.slamware.robot.RecoverLocalizationMovement;
 import com.slamtec.slamware.robot.RecoverLocalizationOptions;
 import com.slamtec.slamware.robot.Rotation;
+import com.slamtec.slamware.robot.SystemParameters;
 import com.slamtec.slamware.sdp.CompositeMapHelper;
 
 import org.apache.commons.lang.StringUtils;
@@ -147,10 +155,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private SerialPort serialPort;
     private ArrayList<Long> idList = new ArrayList<>();
 
-    /**
-     * 是否正在讲解中
-     */
-    private boolean isGuiding = false;
+
 
 
     @Override
@@ -223,6 +228,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 if (!TextUtils.isEmpty(poseJson) && compositeMap != null) {
                     Pose pose = new Gson().fromJson(poseJson, Pose.class);
                     try {
+                        setRobotBaseSpeed();
+                        logD(TAG,"机器人速度："+getBaseSpeed());
                         slamWarePlatform.setCompositeMap(compositeMap, pose);
                         //加载成功后 则获取后台配置的第一个点
                         TourCooLogUtil.i(TAG, "地图加载成功");
@@ -258,6 +265,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 }
                 switch (msg.what) {
                     case HomeConstant.MSG_START:
+                        Log.i(TAG, "handleMessage:当前请求的currentLocationId"+activity.currentLocationId);
                         activity.requestLocationInfo(activity.currentLocationId);
                         break;
                     case MSG_TOAST:
@@ -313,8 +321,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             doFinishByCondition();
             return;
         }
-        //开启讲解模式
-        isGuiding = true;
         setViewVisible(btnStartNav, false);
         RetrofitHelper.getInstance().getServer()
                 .getLocationMessage(id)
@@ -343,8 +349,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     }
                 }, throwable -> {
                     closeLoading();
-                    ToastUtils.showShort("请求失败");
+                    ToastUtils.showShort("请求失败:"+throwable.toString());
                     setViewVisible(btnStartNav, false);
+                    logE(TAG,"requestLocationInfo--->"+throwable.toString());
                 });
     }
 
@@ -400,9 +407,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             logI(TAG, "准备行走");
             MoveOption moveOption = new MoveOption();
             //机器人移动的时候精确到点
-            moveOption.setPrecise(true);
+            moveOption.setPrecise(false);
             moveOption.setMilestone(true);
-
             Pose currentPose = slamWarePlatform.getPose();
             //先获取当前位置信息
             //根据当前位置和传进来的NavLocation 构建一条虚拟路径line
@@ -878,7 +884,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     private void doFinishByCondition() {
         //置为非讲解模式
-        isGuiding = false;
         //显示按钮
         setViewGone(btnStartNav, false);
         Gson gson = new Gson();
@@ -890,7 +895,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             logE(TAG, "doFinishByCondition()--->" + e.toString());
             ToastUtil.showFailed("doFinishByCondition()--->" + e.toString());
         }
-        runUiThreadDelay(this::skipHome, 2000);
+        runUiThreadDelay(this::skipHome, 1000);
     }
 
 
@@ -1053,5 +1058,44 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
     private void runUiThreadDelay(Runnable runnable, int delayTime) {
         mHandler.postDelayed(runnable, delayTime);
+    }
+
+    private void setRobotBaseSpeed() {
+        try {
+            slamWarePlatform.setSystemParameter(SystemParameters.SYSPARAM_ROBOT_SPEED, SystemParameters.SYSVAL_ROBOT_SPEED_LOW);
+        } catch (RequestFailException e) {
+            e.printStackTrace();
+        } catch (ConnectionFailException e) {
+            e.printStackTrace();
+        } catch (ConnectionTimeOutException e) {
+            e.printStackTrace();
+        } catch (UnauthorizedRequestException e) {
+            e.printStackTrace();
+        } catch (UnsupportedCommandException e) {
+            e.printStackTrace();
+        } catch (ParseInvalidException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getBaseSpeed()  {
+        try {
+            return slamWarePlatform.getSystemParameter(SystemParameters.SYSPARAM_ROBOT_SPEED);
+        } catch (RequestFailException e) {
+            e.printStackTrace();
+        } catch (ConnectionFailException e) {
+            e.printStackTrace();
+        } catch (ConnectionTimeOutException e) {
+            e.printStackTrace();
+        } catch (UnauthorizedRequestException e) {
+            e.printStackTrace();
+        } catch (UnsupportedCommandException e) {
+            e.printStackTrace();
+        } catch (ParseInvalidException e) {
+            e.printStackTrace();
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
+        }
+        return "未知";
     }
 }

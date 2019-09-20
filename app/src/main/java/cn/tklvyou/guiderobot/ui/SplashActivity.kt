@@ -7,6 +7,7 @@ import android.os.Message
 import android.view.KeyEvent
 import android.view.View
 import android.widget.EditText
+import cn.tklvyou.guiderobot.CommonConfig
 import cn.tklvyou.guiderobot.api.RetrofitHelper
 import cn.tklvyou.guiderobot.api.RxSchedulers
 import cn.tklvyou.guiderobot.base.BaseActivity
@@ -23,6 +24,7 @@ import cn.tklvyou.guiderobot_new.R
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
+import com.blankj.utilcode.util.SPUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
 import com.iflytek.aiui.uartkit.UARTAgent
@@ -231,7 +233,8 @@ class SplashActivity : BaseActivity() {
         AppConfig.payAmont = config.total_fee
         AppConfig.needPay = config.isIs_charge
         AppConfig.defaultSpeak = config.talk
-        AppConfig.defaultDelay = config.second
+        AppConfig.defaultDelay = config.second * AppConfig.ONE_SECOND
+        SPUtils.getInstance().put(CommonConfig.PREF_KEY_DEBUG_MODE, AppConfig.isDebugMode)
     }
 
 

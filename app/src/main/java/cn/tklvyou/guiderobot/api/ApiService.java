@@ -46,5 +46,5 @@ public interface ApiService {
      */
     @FormUrlEncoded
     @POST("/swoft/delete")
-    Observable<BaseResult<Object>> requestDeletePosition(@Field("id") String ids);
+    Observable<BaseResult<String>> requestDeletePosition(@Field("id") String ids);
 }

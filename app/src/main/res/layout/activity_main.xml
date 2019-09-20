@@ -19,7 +19,7 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:src="@drawable/default_bg"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
 
 
@@ -62,8 +62,8 @@
 
     <SurfaceView
         android:id="@+id/textureView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         />
 
     <ImageView
@@ -74,6 +74,7 @@
         android:layout_marginBottom="300dp"
         android:background="@drawable/btn_start"
         android:gravity="center"
+        android:visibility="gone"
         android:scaleType="centerInside"
         android:textSize="20sp" />
 </FrameLayout>

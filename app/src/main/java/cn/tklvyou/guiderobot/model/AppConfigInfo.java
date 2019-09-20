@@ -20,7 +20,7 @@ public class AppConfigInfo {
     private boolean is_debug;
     private String total_fee;
     private String talk;
-    private int second;
+    private long second;
 
     public String getTalk() {
         return talk;
@@ -30,11 +30,11 @@ public class AppConfigInfo {
         this.talk = talk;
     }
 
-    public int getSecond() {
+    public long getSecond() {
         return second;
     }
 
-    public void setSecond(int second) {
+    public void setSecond(long second) {
         this.second = second;
     }
 

@@ -118,7 +118,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         btnSafeExit.setOnClickListener(this)
         btnForceExit.setOnClickListener(this)
         tvClearPosition.setOnClickListener(this)
-        btnCurrentInfo.setOnClickListener(this)
+        btnCurrentPosition.setOnClickListener(this)
         val path = "/sdcard/robot/map.stcm"
 
         val compositeMapHelper = CompositeMapHelper()
@@ -127,6 +127,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
         val poseJson = SPUtils.getInstance().getString("pose")
         if (poseJson.isNotEmpty() && compositeMap != null) {
             robotPlatform!!.setCompositeMap(compositeMap, Gson().fromJson<Pose>(poseJson, Pose::class.java))
+            setRobotBaseSpeed()
         }
 
 
@@ -342,7 +343,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     }
 
                     R.id.btnSafeExit -> {
-                        ToastUtil.show("将要保存的位置:"+"X = "+pose!!.x+"位置Y = "+pose!!.y)
+                        ToastUtil.show("将要保存的位置:" + "X = " + pose!!.x + "位置Y = " + pose!!.y)
                         MaterialDialog(this).show {
                             title(R.string.tip)
                             message(R.string.safe_exit)
@@ -361,9 +362,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         }
                     }
 
-                    R.id.tvTest1 -> {
-                        flipMap(slamWareMap)
-                    }
+
                     R.id.tvTest0 -> {
                         var currentPose = robotPlatform!!.pose
                         var rotation = currentPose?.rotation
@@ -421,7 +420,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     R.id.tvClearPosition -> {
                         showDeleteDialog()
                     }
-                    R.id.btnCurrentInfo->{
+                    R.id.btnCurrentPosition -> {
                         showCurrentPosition()
                     }
                     else -> {
@@ -429,7 +428,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                     }
                 }
             } catch (e: Exception) {
-
+                ToastUtil.showFailed(e.toString())
             }
         }
     }
@@ -510,43 +509,6 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    private fun skipMainActivity() {
-        showDialog()
-        btnNavigation.isEnabled = false
-        val ipStr = editTextIp.text.toString().trim()
-        if (ipStr.isEmpty()) {
-            ToastUtils.showShort("请输入机器人IP地址")
-        } else {
-            Thread(Runnable {
-                try {
-                    val robotPlatform = DeviceManager.connect(ipStr, 1445)
-                    if (robotPlatform == null) {
-                        ToastUtils.showShort("连接失败，请输入正确的IP地址")
-                    } else {
-                        Robot.getInstance().slamWarePlatform = robotPlatform
-                        (application as MyApplication).setRobotPlatform(robotPlatform)
-                        ToastUtils.showShort("连接成功")
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                    }
-                    hideDialog()
-                    finish()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    if (e is ConnectionTimeOutException) {
-                        ToastUtils.showShort("连接超时，请检查网络")
-                    } else {
-                        ToastUtils.showShort("连接失败，请输入正确的IP地址")
-                    }
-                    hideDialog()
-                }
-            }).start()
-
-        }
-        btnNavigation.isEnabled = true
-    }
-
-
     private fun showDeleteDialog() {
         val navLocationList = daoSession!!.navLocationDao.queryBuilder().list()
         if (navLocationList == null || navLocationList.isEmpty()) {
@@ -587,6 +549,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
             return
         }
         var id: Long
+        var deleteSuccess = false
         for (i in idList.indices) {
             id = idList[i]
             if (id < 0) {
@@ -595,6 +558,10 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
             val navLocation = daoSession!!.navLocationDao.load(id) ?: continue
             deleteNavLocation(navLocation)
             TourCooLogUtil.d("数据删除成功：" + navLocation.id!!)
+            deleteSuccess = true
+        }
+        if (deleteSuccess) {
+            ToastUtil.showSuccess("位置信息已删除")
         }
     }
 
@@ -608,7 +575,7 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
     private fun spliceData(navLocation: NavLocation?): String {
         return if (navLocation == null) {
             "空"
-        } else startTip + navLocation.id + endTip + navLocation.name
+        } else startTip + navLocation.id + endTip + navLocation.name + "坐标: X = " + navLocation.x + " Y =" + navLocation.y + " 角度:" + navLocation.rotation
     }
 
 
@@ -644,7 +611,6 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                         REQUEST_ERROR -> ToastUtils.showShort(result.errmsg)
                         REQUEST_SUCCESS -> {
                             deleteLocationDataFromSq(idList)
-                            ToastUtil.showSuccess("位置信息已删除")
                         }
                         else -> {
                         }
@@ -684,8 +650,8 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
     }
 
 
-    private fun showCurrentPosition () {
-        val currentPositionInfo = "当前位置信息:X="+robotPlatform?.pose!!.x+", Y = "+robotPlatform?.pose!!.y
+    private fun showCurrentPosition() {
+        val currentPositionInfo = "当前位置信息:X=" + robotPlatform?.pose!!.x + ", Y = " + robotPlatform?.pose!!.y
         AlertDialog.Builder(this)
                 //这里是表头的内容
                 .setTitle("当前位置信息")
@@ -695,9 +661,20 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                 .setPositiveButton("确定"
                 ) { dialog, which ->
                     //setPositiveButton里面的onClick执行的是左边按钮
+                    setRobotBaseSpeed()
+                    ToastUtil.show("当前机器人速度：" + getBaseSpeed())
                     dialog.dismiss()
                 }
                 .show()
+    }
 
+
+    private fun setRobotBaseSpeed() {
+        robotPlatform!!.setSystemParameter(SystemParameters.SYSPARAM_ROBOT_SPEED, SystemParameters.SYSVAL_ROBOT_SPEED_LOW)
+    }
+
+
+    private fun getBaseSpeed(): String {
+        return robotPlatform!!.getSystemParameter(SystemParameters.SYSPARAM_ROBOT_SPEED)
     }
 }

@@ -26,5 +26,7 @@ public class AppConfig {
 
     public static String defaultSpeak = "瞧一瞧看一看嘞";
 
-    public static int defaultDelay = 20000;
+    public static long ONE_SECOND = 1000L;
+
+    public static long defaultDelay = ONE_SECOND*20;
 }

@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import cn.tklvyou.arcfaceutils.ArcFaceUtils;
@@ -51,8 +52,10 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     @Override
     protected void initView() {
         mContext = this;
-         textureView = findViewById(R.id.textureView);
-        findViewById(R.id.btnStartNav).setOnClickListener(this);
+        textureView = findViewById(R.id.textureView);
+        ImageView btnStartNav = findViewById(R.id.btnStartNav);
+        setViewGone(btnStartNav, true);
+        btnStartNav.setOnClickListener(this);
         serialPort = ((MyApplication) getApplication()).getLedController();
         initFaceUtil();
     }
@@ -79,6 +82,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                 intent.setClass(mContext, GuideActivity.class);
             }
             startActivity(intent);
+            finish();
         }, 1000);
 
     }
@@ -93,7 +97,6 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         });
         arcFaceUtils.setIArcFacePeopleListener(() -> {
             //如果说话未结束 则拦截本次人脸识别回调
-            ToastUtil.showSuccess("有人经过");
             if (!speakFinish) {
                 return;
             }
@@ -113,7 +116,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                 serialPort.sendDataToSerialPort((byte[]) controllerModel.getParams());
                 if (open) {
                     speakFinish = false;
-                    speckTextSynthesis(AppConfig.defaultSpeak,true);
+                    speckTextSynthesis(AppConfig.defaultSpeak, true);
                 }
             } catch (Exception e) {
                 TourCooLogUtil.e(TAG, "controlSpeakAndLight()异常---->原因:" + e.toString());
@@ -131,7 +134,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         speakFinish = true;
-        if(arcFaceUtils !=null){
+        if (arcFaceUtils != null) {
             arcFaceUtils.onDestroy();
         }
         super.onDestroy();
