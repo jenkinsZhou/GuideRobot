@@ -538,6 +538,9 @@ class GmappingActivity : BaseActivity(), View.OnClickListener {
                 .setGravity(Gravity.CENTER)
                 .setPositive("确定") {
                     idList = parseSparseArrayToIdList(checkedAdapter.saveChecked)
+                    if (idList.isEmpty()) {
+                        return@setPositive
+                    }
                     requestDeletePosition(idList)
                 }.show(supportFragmentManager)
     }

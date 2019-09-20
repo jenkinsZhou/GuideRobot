@@ -121,6 +121,7 @@ import static java.lang.Integer.MIN_VALUE;
  * @date 2019年09月05日13:50
  * @Email: 971613168@qq.com
  */
+@SuppressLint("CheckResult")
 public class GuideActivity extends BaseActivity implements View.OnClickListener {
     private static final String startTip = "位置id:";
     private static final String endTip = "，名称:";
@@ -154,8 +155,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private MotorController motorController;
     private SerialPort serialPort;
     private ArrayList<Long> idList = new ArrayList<>();
-
-
 
 
     @Override
@@ -229,7 +228,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     Pose pose = new Gson().fromJson(poseJson, Pose.class);
                     try {
                         setRobotBaseSpeed();
-                        logD(TAG,"机器人速度："+getBaseSpeed());
+                        logD(TAG, "机器人速度：" + getBaseSpeed());
                         slamWarePlatform.setCompositeMap(compositeMap, pose);
                         //加载成功后 则获取后台配置的第一个点
                         TourCooLogUtil.i(TAG, "地图加载成功");
@@ -265,7 +264,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                 }
                 switch (msg.what) {
                     case HomeConstant.MSG_START:
-                        Log.i(TAG, "handleMessage:当前请求的currentLocationId"+activity.currentLocationId);
+                        Log.i(TAG, "handleMessage:当前请求的currentLocationId" + activity.currentLocationId);
                         activity.requestLocationInfo(activity.currentLocationId);
                         break;
                     case MSG_TOAST:
@@ -313,10 +312,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     private void requestLocationInfo(long id) {
         showLoading("正在请求位置信息");
         if (id < 0) {
+            //讲解点全部结束
             logI(TAG, "所有位置点讲解全部结束");
-            ToastUtils.showShort("本次讲解全部结束");
             isTip = true;
-            speckTextSynthesis("讲解点全部执行完毕!", true);
             closeLoading();
             doFinishByCondition();
             return;
@@ -349,9 +347,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
                     }
                 }, throwable -> {
                     closeLoading();
-                    ToastUtils.showShort("请求失败:"+throwable.toString());
+                    ToastUtils.showShort("请求失败:" + throwable.toString());
                     setViewVisible(btnStartNav, false);
-                    logE(TAG,"requestLocationInfo--->"+throwable.toString());
+                    logE(TAG, "requestLocationInfo--->" + throwable.toString());
                 });
     }
 
@@ -442,6 +440,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
 
     private void showToast(String text) {
+        if (!DEBUG_MODE) {
+            return;
+        }
         Message message = mHandler.obtainMessage();
         message.what = MSG_TOAST;
         message.obj = text;
@@ -643,7 +644,9 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         super.playComplete();
         //说话结束 因此需要置为说话完成状态
         speakFinish = true;
-        ToastUtils.showShort("小女孩说话已经结束");
+        if (DEBUG_MODE) {
+            ToastUtils.showShort("小女孩说话已经结束");
+        }
         if (isTip) {
             isTip = false;
         } else {
@@ -883,7 +886,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
 
 
     private void doFinishByCondition() {
-        //置为非讲解模式
         //显示按钮
         setViewGone(btnStartNav, false);
         Gson gson = new Gson();
@@ -893,9 +895,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
             logI(TAG, "doFinishByCondition()--->" + "机器人位置信息保存成功:X = " + pose.getX() + " , Y = " + pose.getY());
         } catch (Exception e) {
             logE(TAG, "doFinishByCondition()--->" + e.toString());
-            ToastUtil.showFailed("doFinishByCondition()--->" + e.toString());
         }
-        runUiThreadDelay(this::skipHome, 1000);
+        runUiThreadDelay(this::skipHome, 2000);
     }
 
 
@@ -1054,8 +1055,6 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
     }
 
 
-
-
     private void runUiThreadDelay(Runnable runnable, int delayTime) {
         mHandler.postDelayed(runnable, delayTime);
     }
@@ -1078,7 +1077,7 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         }
     }
 
-    private String getBaseSpeed()  {
+    private String getBaseSpeed() {
         try {
             return slamWarePlatform.getSystemParameter(SystemParameters.SYSPARAM_ROBOT_SPEED);
         } catch (RequestFailException e) {
@@ -1098,4 +1097,8 @@ public class GuideActivity extends BaseActivity implements View.OnClickListener 
         }
         return "未知";
     }
+
+
+
+
 }
